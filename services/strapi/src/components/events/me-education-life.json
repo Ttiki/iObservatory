@@ -1,0 +1,22 @@
+{
+  "collectionName": "components_events_me_education_lives",
+  "info": {
+    "displayName": "MEEducationLife",
+    "icon": "feather"
+  },
+  "options": {},
+  "attributes": {
+    "Description": {
+      "type": "text",
+      "required": true
+    },
+    "ActivatedProjects": {
+      "type": "integer",
+      "min": 0
+    },
+    "SelfFundedProjects": {
+      "type": "integer",
+      "min": 0
+    }
+  }
+}

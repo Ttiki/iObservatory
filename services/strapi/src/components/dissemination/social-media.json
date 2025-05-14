@@ -1,0 +1,36 @@
+{
+  "collectionName": "components_dissemination_social_medias",
+  "info": {
+    "displayName": "Social Media",
+    "icon": "twitter"
+  },
+  "options": {},
+  "attributes": {
+    "platform": {
+      "type": "enumeration",
+      "enum": [
+        "YouTube",
+        "LinkedIn",
+        "Twitter/X",
+        "Instagram"
+      ],
+      "required": true
+    },
+    "views": {
+      "type": "biginteger",
+      "required": false
+    },
+    "gained_followers": {
+      "type": "integer"
+    },
+    "followers": {
+      "type": "biginteger",
+      "min": "0"
+    },
+    "activities": {
+      "type": "biginteger",
+      "required": false,
+      "min": "0"
+    }
+  }
+}

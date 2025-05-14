@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_events_me_researches",
+  "info": {
+    "displayName": "MEResearch",
+    "icon": "manyToMany"
+  },
+  "options": {},
+  "attributes": {
+    "Publication": {
+      "type": "integer",
+      "required": false,
+      "min": 0
+    },
+    "Seminars": {
+      "type": "integer",
+      "min": 0
+    },
+    "Workshops": {
+      "type": "integer",
+      "min": 0
+    }
+  }
+}

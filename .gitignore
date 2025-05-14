@@ -1,0 +1,125 @@
+#############################################
+# Project-level ignores
+#############################################
+
+# Certificates, SSL, Certbot
+/certs/
+ssl/
+certbot/
+
+# Database backups & exports
+/services/database/backups/
+/services/datawarehouse/backups/
+*.sql
+*.sqlite*
+*.dump
+*.bak
+
+# Runtime & temp files
+/logs/
+tmp/
+*.pid
+*.seed
+*.lock
+
+# Sensitive environment/config files
+.env
+*.env
+*.tsbuildinfo
+*.eslintcache
+
+# Workspace-specific settings
+.vscode/
+.idea/
+*.code-workspace
+nbproject/
+
+# OS-specific junk
+.DS_Store
+Icon
+.Spotlight-V100
+.Trashes
+._*
+Desktop.ini
+Thumbs.db
+ehthumbs.db
+$RECYCLE.BIN/
+
+# Archives & installers
+*.7z
+*.zip
+*.tar
+*.gz
+*.rar
+*.cab
+*.iso
+*.dmg
+*.jar
+
+# Binary/compiled
+*.class
+*.o
+*.dll
+*.exe
+*.so
+*.swp
+*.swo
+*.swn
+*.out
+
+# Build/dist artifacts
+build/
+dist/
+results/
+
+#############################################
+# Docker-specific ignores
+#############################################
+
+/mediawiki_container_folder/
+/docker/Strapi copy.Dockerfile
+strapi copy/
+
+#############################################
+# Node.js / Strapi related ignores
+#############################################
+
+node_modules/
+/.yarn/*
+!.yarn/cache
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
+yarn-error.log
+
+# Strapi build and caches
+/services/strapi/.strapi/
+/services/strapi/exports/
+/services/strapi/.strapi-updater.json
+/services/strapi/.strapi-cloud.json
+/services/strapi/build/
+/services/strapi/dist/
+
+# Strapi uploads — keep .gitkeep only
+/services/strapi/public/uploads/*
+!/services/strapi/public/uploads/.gitkeep
+
+# Coverage & test output
+coverage/
+testApp/
+
+#############################################
+# MediaWiki specific
+#############################################
+
+/services/mediawiki/extensions/
+/services/mediawiki/images/
+/services/mediawiki/resources/assets/*.zip
+
+#############################################
+# MinIO specific
+#############################################
+
+/minio/

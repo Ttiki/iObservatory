@@ -1,0 +1,21 @@
+{
+  "collectionName": "components_qeb_qebs",
+  "info": {
+    "displayName": "QEB",
+    "icon": "check"
+  },
+  "options": {},
+  "attributes": {
+    "ConstellationProject": {
+      "type": "boolean",
+      "default": false,
+      "required": true
+    },
+    "OverallScore": {
+      "type": "decimal",
+      "required": true,
+      "min": 0,
+      "max": 10
+    }
+  }
+}

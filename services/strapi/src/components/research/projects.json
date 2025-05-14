@@ -1,0 +1,18 @@
+{
+  "collectionName": "components_research_projects",
+  "info": {
+    "displayName": "Projects",
+    "icon": "file"
+  },
+  "options": {},
+  "attributes": {
+    "Joint": {
+      "type": "integer",
+      "min": 0
+    },
+    "Awards": {
+      "type": "integer",
+      "min": 0
+    }
+  }
+}

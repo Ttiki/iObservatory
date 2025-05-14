@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_moodle_agile_managements",
+  "info": {
+    "displayName": "Agile Management"
+  },
+  "options": {},
+  "attributes": {
+    "number_staff": {
+      "type": "integer",
+      "required": true
+    },
+    "date": {
+      "type": "date"
+    }
+  }
+}

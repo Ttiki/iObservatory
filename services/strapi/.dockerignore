@@ -1,0 +1,23 @@
+# Node
+node_modules/
+.yarn/
+build/
+dist/
+.cache/
+tmp/
+*.log
+
+# VSCode and IDE configs
+.vscode/
+.idea/
+*.iml
+
+# Strapi generated folders
+.strapi/
+public/uploads/*
+
+# Misc
+*.bak
+*.backup
+*.old
+.DS_Store

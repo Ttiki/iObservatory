@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_ec_platform_deliverables",
+  "info": {
+    "displayName": "Deliverables"
+  },
+  "options": {},
+  "attributes": {
+    "percentage_deliverables": {
+      "type": "integer",
+      "required": true
+    },
+    "year": {
+      "type": "date",
+      "required": true
+    }
+  }
+}

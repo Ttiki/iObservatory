@@ -1,0 +1,50 @@
+# Top-level configuration
+root = true
+
+# Default: Unix line endings, UTF-8, 2 spaces
+[*]
+end_of_line = lf
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# YAML and Docker Compose
+[*.yml]
+indent_size = 2
+
+[*.yaml]
+indent_size = 2
+
+# Shell scripts and Makefiles
+[*.sh]
+indent_style = space
+indent_size = 2
+
+[Makefile]
+indent_style = tab
+
+# JSON, JS, TS, etc.
+[*.json]
+indent_size = 2
+
+[*.js]
+indent_size = 2
+
+[*.ts]
+indent_size = 2
+
+# PHP (MediaWiki)
+[*.php]
+indent_style = space
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false  # Keep spaces in lists
+
+# .env files
+[.env]
+indent_style = space
+indent_size = 2
