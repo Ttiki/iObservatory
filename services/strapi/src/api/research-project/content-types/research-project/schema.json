@@ -1,0 +1,25 @@
+{
+  "kind": "collectionType",
+  "collectionName": "research_projects",
+  "info": {
+    "singularName": "research-project",
+    "pluralName": "research-projects",
+    "displayName": "ResearchProject",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Research": {
+      "type": "dynamiczone",
+      "components": [
+        "research.cartography",
+        "research.hub",
+        "research.projects",
+        "research.grants"
+      ]
+    }
+  }
+}

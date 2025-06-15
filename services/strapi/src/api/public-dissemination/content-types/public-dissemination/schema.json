@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "public_disseminations",
+  "info": {
+    "singularName": "public-dissemination",
+    "pluralName": "public-disseminations",
+    "displayName": "PublicDissemination",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Dissemination": {
+      "type": "dynamiczone",
+      "components": [
+        "dissemination.social-media",
+        "dissemination.website"
+      ]
+    },
+    "EntryDate": {
+      "type": "date",
+      "required": true
+    }
+  }
+}

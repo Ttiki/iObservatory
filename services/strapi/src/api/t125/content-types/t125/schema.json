@@ -1,0 +1,23 @@
+{
+  "kind": "collectionType",
+  "collectionName": "t125s",
+  "info": {
+    "singularName": "t125",
+    "pluralName": "t125s",
+    "displayName": "T125"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "people_active": {
+      "type": "integer",
+      "required": true
+    },
+    "date": {
+      "type": "date",
+      "required": true
+    }
+  }
+}

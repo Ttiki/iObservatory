@@ -5,6 +5,6 @@ export default ({ env }) => ({
     keys: env.array('APP_KEYS'),
   },
   emitErrors: false,
-  url: env('PUBLIC_URL', 'https://localhost/strapi/'),
+  url: env('PUBLIC_URL', 'https://unitapedia.univ-unita.eu/strapi/'),
   proxy: env.bool('IS_PROXIED', true),
 });

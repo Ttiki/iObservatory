@@ -1,0 +1,28 @@
+{
+  "kind": "collectionType",
+  "collectionName": "events",
+  "info": {
+    "singularName": "event",
+    "pluralName": "events",
+    "displayName": "Event",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "events": {
+      "type": "component",
+      "repeatable": true,
+      "component": "events.events"
+    },
+    "SupplementaryInfo": {
+      "type": "dynamiczone",
+      "components": [
+        "events.me-education-life",
+        "events.me-research"
+      ]
+    }
+  }
+}

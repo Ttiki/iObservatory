@@ -1,0 +1,20 @@
+{
+  "kind": "collectionType",
+  "collectionName": "qebs",
+  "info": {
+    "singularName": "qeb",
+    "pluralName": "qebs",
+    "displayName": "QEB"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "QEB": {
+      "type": "component",
+      "repeatable": true,
+      "component": "qeb.qeb"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+/**
+ * t127 service
+ */
+
+import { factories } from '@strapi/strapi';
+
+export default factories.createCoreService('api::t127.t127');
