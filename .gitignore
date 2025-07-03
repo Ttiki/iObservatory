@@ -81,7 +81,7 @@ results/
 strapi copy/
 
 #############################################
-# Node.js / Strapi related ignores
+# Node.js ignores
 #############################################
 
 node_modules/
@@ -93,22 +93,6 @@ node_modules/
 !.yarn/versions
 .pnp.*
 yarn-error.log
-
-# Strapi build and caches
-/services/strapi/.strapi/
-/services/strapi/exports/
-/services/strapi/.strapi-updater.json
-/services/strapi/.strapi-cloud.json
-/services/strapi/build/
-/services/strapi/dist/
-
-# Strapi uploads — keep .gitkeep only
-/services/strapi/public/uploads/*
-!/services/strapi/public/uploads/.gitkeep
-
-# Coverage & test output
-coverage/
-testApp/
 
 #############################################
 # MediaWiki specific
