@@ -2,95 +2,159 @@
 include .env
 include ./services/mediawiki/.env
 
+# Variables
 DC = docker compose
 DEFAULT_EXT_VERSION = REL1_39
-
-.DEFAULT_GOAL := help
-
-help: ## Show help
-	@echo "Available commands:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 # ───── Docker Lifecycle ─────
 
 up: ## Start all containers
+	@echo "🚀 Starting all containers..."
 	$(DC) up -d
 
 down: ## Stop all containers
+	@echo "🛑 Stopping all containers..."
 	$(DC) down
 
 restart: ## Restart all containers
+	@echo "🔄 Restarting all containers..."
 	$(DC) down && $(DC) up -d
 
 logs: ## Show container logs
+	@echo "📜 Showing container logs..."
 	$(DC) logs -f --tail=100
 
-clean: ## Remove local build & backup artifacts
-	rm -rf mediawiki_container_folder services/**/backups
-	rm -rf services/mediawiki/extensions && mkdir -p services/mediawiki/extensions
-	docker system prune -a --force
-
-build: mw-extensions ## Build full stack, install MediaWiki extensions, and start everything
+build: ## Build full stack
+	@echo "🔨 Building full stack..."
 	$(DC) build
-	make mw-initialize
 
 # ───── MediaWiki ─────
 
 mw-extensions: ## Clone MediaWiki extensions
+	@echo "📦 Cloning MediaWiki extensions..."
 	rm -rf services/mediawiki/extensions && mkdir -p services/mediawiki/extensions
 	@cat services/mediawiki/extensions.config | while read line; do \
 		ext=$$(echo $$line | awk '{print $$1}'); \
-		ver=$$(echo $$line | awk '{print $$2}'); \
-		if [ -z "$$ver" ]; then ver=$(DEFAULT_EXT_VERSION); fi; \
-		echo "🔹 Cloning \033[1m$$ext\033[0m @ \033[36m$$ver\033[0m"; \
-		if git clone --depth 1 --branch "$$ver" https://gerrit.wikimedia.org/r/mediawiki/extensions/$$ext services/mediawiki/extensions/$$ext > /dev/null 2>&1; then \
+		echo "🔹 Cloning \033[1m$$ext\033[0m @ \033[36m$(DEFAULT_EXT_VERSION)\033[0m"; \
+		if git clone --depth 1 --branch $(DEFAULT_EXT_VERSION) https://gerrit.wikimedia.org/r/mediawiki/extensions/$$ext services/mediawiki/extensions/$$ext > /dev/null 2>&1; then \
 			echo "   ✅ \033[32mSuccessfully cloned:\033[0m $$ext"; \
 		else \
 			echo "   ❌ \033[31mFailed to clone:\033[0m $$ext (check branch or extension name)"; \
 		fi; \
 	done
 	@echo "🔧 Cloning non-Gerrit extensions..."
-	@git clone https://github.com/StarCitizenTools/mediawiki-extensions-TabberNeue.git services/mediawiki/extensions/TabberNeue && echo "   ✅ TabberNeue added"
-	@git clone https://gitlab.com/organicdesign/TreeAndMenu.git services/mediawiki/extensions/TreeAndMenu && echo "   ✅ TreeAndMenu added"
-	@git clone https://github.com/neayi/mw-echarts.git services/mediawiki/extensions/ECharts && echo "   ✅ ECharts added"
-	@if [ -d "services/mediawiki/extensions/VisualEditor" ]; then \
-    cd services/mediawiki/extensions/VisualEditor && \
-    echo "   ⚙️  Resetting VisualEditor submodules..." && \
-    git submodule deinit -f lib/ve || true && \
-    git submodule update --init --recursive lib/ve && \
-    echo "   🔄 VisualEditor submodules updated"; \
-  fi
+	git clone --depth 1 --branch $(DEFAULT_EXT_VERSION) https://github.com/StarCitizenTools/mediawiki-extensions-TabberNeue.git services/mediawiki/extensions/TabberNeue && echo "   ✅ TabberNeue added (REL1_39)"
+	git clone --depth 1 https://github.com/neayi/mw-echarts.git services/mediawiki/extensions/ECharts && echo "   ✅ ECharts added (default branch)"
+	@cd services/mediawiki/extensions/VisualEditor && git submodule update --init
 
-mw-install: ## Install composer and update mediawiki (running maintenance script)
-	$(DC) up -d
-	sleep 10
-	$(DC) exec mediawiki composer install
-	$(DC) exec mediawiki php maintenance/update.php
-
-mw-initialize: ## First-time Composer install with no scripts (safe for fresh builds)
-	$(DC) up -d
-	sleep 10
-	@echo "📦 Composer update (no-scripts)..."
+mw-install: ## Install MediaWiki via CLI and setup custom config
+	@echo "📦 Installing composer extensions..."
 	$(DC) exec mediawiki composer update --no-dev --prefer-dist --optimize-autoloader --no-scripts
-	@echo "⚙️ Running post-install/update scripts manually (if any)..."
-	$(DC) exec mediawiki composer run-script post-update-cmd || true
-	@echo "🧹 Running MediaWiki update.php..."
-	$(DC) exec mediawiki php maintenance/update.php
-
-mw-dev-copy: ## Copy MediaWiki container contents locally (for dev)
-	rm -rf mediawiki_container_folder
-	$(DC) cp mediawiki:/var/www/html/. mediawiki_container_folder/
+	@echo "🚀 Starting MediaWiki CLI installation..."
+	$(DC) exec mediawiki php maintenance/install.php \
+		--dbtype=mysql \
+		--dbserver=mariadb \
+		--dbname=$(shell grep MARIADB_DATABASE= services/mediawiki/.env | cut -d'=' -f2) \
+		--dbuser=$(shell grep MARIADB_USER= services/mediawiki/.env | cut -d'=' -f2) \
+		--dbpass=$(shell grep MARIADB_ROOT_PASSWORD= services/mediawiki/.env | cut -d'=' -f2) \
+		--server="http://$(shell grep HOSTNAME= .env | cut -d'=' -f2)" \
+		--scriptpath="" \
+		--lang=en \
+		--pass=$(shell grep MEDIAWIKI_ADMIN_PWD= services/mediawiki/.env | cut -d'=' -f2) \
+		"$(shell grep OBSERVATORY_NAME= .env | cut -d'=' -f2)" \
+		"$(shell grep MEDIAWIKI_ADMIN_USER= services/mediawiki/.env | cut -d'=' -f2)"
+	@echo "✅ MediaWiki basic installation completed"
+	@echo "✅ Composer extensions installed"
+	@echo "🔧 Copying custom LocalSettings.php..."
+	$(DC) cp services/mediawiki/LocalSettings.php mediawiki:/var/www/html/LocalSettings.php
+	@echo "🔄 Running final update..."
+	$(DC) exec mediawiki php maintenance/update.php --quick
+	@echo "🎉 MediaWiki installation!"
 
 # ───── Database Backups ─────
 
-backup: ## Backup all databases
-	make backup-mariadb
-	make backup-postgres
-
-backup-mariadb:
+backup-mariadb: ## Create database backup
+	@echo "💾 Creating MariaDB backup..."
 	mkdir -p services/mariadb/backups
-	$(DC) exec database sh -c "mysqldump -u$$MARIADB_USER -p$$MARIADB_PWD $$MEDIAWIKI_DB_NAME" > services/mariadb/backups/backup_$(shell date +%F_%T).sql
+	$(DC) exec mariadb sh -c "mysqldump -u$$MARIADB_USER -p$$MARIADB_PASSWORD $$MARIADB_DATABASE" > services/mariadb/backups/backup_$(shell date +%F_%T).sql
+	@echo "✅ Backup created in services/mariadb/backups/"
 
-backup-postgres:
-	mkdir -p services/postgres/backups
-	$(DC) exec datawarehouse pg_dump -U $$DATABASE_USERNAME $$DATABASE_NAME > services/postgres/backups/backup_$(shell date +%F_%T).sql
+# ───── Installation & Configuration ─────
+
+install: ## Complete installation process with secure credentials and server configuration
+	@echo "🚀 Starting MediaWiki installation process..."
+	@echo "This will update environment files with secure credentials and server configuration."
+	@read -p "Enter the IP address of your Debian 12 server: " SERVER_IP; \
+	$(MAKE) install-update-env SERVER_IP=$$SERVER_IP
+	@$(MAKE) install-generate-credentials
+	@$(MAKE) install-create-info-file
+	@echo "✅ Installation completed! Check connection-info.txt for access details."
+
+install-update-env: ## Update hostname in environment files
+	@echo "🔧 Updating hostname to $(SERVER_IP)..."
+	@sed -i 's/HOSTNAME=.*/HOSTNAME=$(SERVER_IP)/' .env
+	@echo "   ✅ Updated .env with new hostname"
+
+install-generate-credentials: ## Generate secure passwords and keys
+	@echo "🔐 Generating secure credentials..."
+	@NEW_ADMIN_PWD=$$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20); \
+	NEW_HOP_PWD=$$(openssl rand -base64 24 | tr -d "=+/" | cut -c1-20); \
+	NEW_SECRET_KEY=$$(openssl rand -hex 32); \
+	NEW_UPGRADE_KEY=$$(openssl rand -base64 12 | tr -d "=+/"); \
+	echo "   🔹 Updating MediaWiki admin password..."; \
+	sed -i "s/MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" services/mediawiki/.env; \
+	echo "   🔹 Updating Apache Hop/Tomcat password..."; \
+	sed -i "s/password=\"[^\"]*\"/password=\"$$NEW_HOP_PWD\"/" services/hop-web/tomcat/config/tomcat-users.xml; \
+	echo "   🔹 Updating secret keys..."; \
+	sed -i "s/MEDIAWIKI_SECRET_KEY=.*/MEDIAWIKI_SECRET_KEY=$$NEW_SECRET_KEY/" services/mediawiki/.env; \
+	sed -i "s/MEDIAWIKI_UPGRADE_KEY=.*/MEDIAWIKI_UPGRADE_KEY=$$NEW_UPGRADE_KEY/" services/mediawiki/.env; \
+	echo "   ✅ All credentials updated successfully"
+
+install-create-info-file: ## Create connection information file
+	@echo "📄 Creating connection information file..."
+	@echo "# MediaWiki Connection Information" > connection-info.txt
+	@echo "# Generated on: $$(date)" >> connection-info.txt
+	@echo "" >> connection-info.txt
+	@echo "## Server Information" >> connection-info.txt
+	@echo "Server IP: $$(grep HOSTNAME= .env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "Site Name: $$(grep OBSERVATORY_NAME= .env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "" >> connection-info.txt
+	@echo "## MediaWiki Access" >> connection-info.txt
+	@echo "URL: http://$$(grep HOSTNAME= .env | cut -d'=' -f2):8080" >> connection-info.txt
+	@echo "Admin User: $$(grep MEDIAWIKI_ADMIN_USER= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "Admin Password: $$(grep MEDIAWIKI_ADMIN_PWD= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "" >> connection-info.txt
+	@echo "## Apache Hop Web Access" >> connection-info.txt
+	@echo "URL: http://$$(grep HOSTNAME= .env | cut -d'=' -f2):8081" >> connection-info.txt
+	@echo "Username: admin" >> connection-info.txt
+	@echo "Password: $$(grep 'username="admin"' services/hop-web/tomcat/config/tomcat-users.xml | sed 's/.*password="\([^"]*\)".*/\1/')" >> connection-info.txt
+	@echo "" >> connection-info.txt
+	@echo "## Database Information" >> connection-info.txt
+	@echo "Database Name: $$(grep MARIADB_DATABASE= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "Database User: $$(grep MARIADB_USER= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "Database Password: $$(grep MARIADB_ROOT_PASSWORD= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "" >> connection-info.txt
+	@echo "## Security Keys" >> connection-info.txt
+	@echo "Secret Key: $$(grep MEDIAWIKI_SECRET_KEY= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "Upgrade Key: $$(grep MEDIAWIKI_UPGRADE_KEY= services/mediawiki/.env | cut -d'=' -f2)" >> connection-info.txt
+	@echo "   ✅ Connection info saved to connection-info.txt"
+
+install-full: ## Complete installation with custom LocalSettings.php
+	docker system prune -a
+# 	docker volume rm $$(docker volume ls -q)
+	@$(MAKE) install
+	@echo "🔨 Building and starting services..."
+	@$(MAKE) mw-extensions
+	@$(MAKE) build
+	@$(MAKE) up
+	@sleep 10
+	@$(MAKE) mw-install
+	@echo "🎉 Installation complete!"
+	@echo "📖 Check connection-info.txt for access details"
+
+update:
+	@$(MAKE) install
+	@$(MAKE) restart
+	$(DC) exec mediawiki composer update --no-dev --prefer-dist --optimize-autoloader --no-scripts
+	$(DC) exec mediawiki php maintenance/update.php --quick
+	@docker compose exec mediawiki bash -c "cd maintenance && php changePassword.php --user=$(MEDIAWIKI_ADMIN_USER) --password=$$(grep MEDIAWIKI_ADMIN_PWD ./services/mediawiki/.env | cut -d'=' -f2)"

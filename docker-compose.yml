@@ -9,7 +9,6 @@ volumes:
   html:
   certs:
   acme:
-  minio:
 
 services:
 
@@ -57,7 +56,7 @@ services:
     networks:
       - observatory_net
     expose:
-      - "80"
+      - "8080:80"
     volumes:
       - ./services/mediawiki/LocalSettings.php:/var/www/html/LocalSettings.php:ro
       - ./services/mediawiki/composer.local.json:/var/www/html/composer.local.json
@@ -123,16 +122,6 @@ services:
       - observatory_net
     depends_on:
       - postgres
-
-  cube:
-    image: cubejs/cube:latest
-    ports:
-      - 4000:4000
-      - 15432:15432
-    environment:
-      - CUBEJS_DEV_MODE=true
-    volumes:
-      - .:/cube/conf
 
   # ───── ADMIN TOOLS ─────
   phpmyadmin:
