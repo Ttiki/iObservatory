@@ -36,7 +36,7 @@ This is a Docker-based boilerplate stack for building a **data-driven Impact Obs
 ### 🌐 MediaWiki (Port 8080)
 **Semantic Wiki Platform for Ontology Development**
 
-- **Version:** Compatible REL1_39
+- **Version:** Compatible REL1_43
 - **Purpose:** Create, manage and populate ontologies
 - **Key Semantic Extensions:**
   - **Cargo:** Store and query structured data in wiki pages
@@ -48,7 +48,7 @@ This is a Docker-based boilerplate stack for building a **data-driven Impact Obs
 ### 🗄️ MariaDB (Port 3306 - internal)
 **Relational Database Backend**
 
-- **Version:** 10.11 (LTS)
+- **Version:** 11.4 (LTS)
 - **Purpose:** Store wiki content, semantic data, and ontology relationships
 - **Configuration:** Optimized for MediaWiki with full UTF-8 support
 
@@ -81,29 +81,13 @@ This is a Docker-based boilerplate stack for building a **data-driven Impact Obs
 
 ## 🚀 Deployment Instructions
 
-### 1️⃣ Server Access
-```bash
-# Connect to your assigned server
-ssh root@[STUDENT_SERVER_IP_ADDRESS]
-```
-
-### 2️⃣ Initial Server Setup
-```bash
-# Change and STORE yout server password
-passwd
-
-# Navigate to the project directory
-cd semantic-web
-```
-
-### 3️⃣ Platform Deployment
+### Platform Deployment
 ```bash
 # Run the automated deployment
 make update
 ```
 
 **This command will:**
-- ✅ Prompt for your student server IP address (enter the same IP you used for SSH)
 - ✅ Generate secure passwords for all services
 - ✅ Configure all environment files
 - ✅ Download MediaWiki semantic extensions

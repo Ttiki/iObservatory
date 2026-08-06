@@ -84,16 +84,9 @@ backup-mariadb: ## Create database backup
 install: ## Complete installation process with secure credentials and server configuration
 	@echo "🚀 Starting MediaWiki installation process..."
 	@echo "This will update environment files with secure credentials and server configuration."
-	@read -p "Enter the IP address of your Debian 12 server: " SERVER_IP; \
-	$(MAKE) install-update-env SERVER_IP=$$SERVER_IP
 	@$(MAKE) install-generate-credentials
 	@$(MAKE) install-create-info-file
 	@echo "✅ Installation completed! Check connection-info.txt for access details."
-
-install-update-env: ## Update hostname in environment files
-	@echo "🔧 Updating hostname to $(SERVER_IP)..."
-	@sed -i 's/HOSTNAME=.*/HOSTNAME=$(SERVER_IP)/' .env
-	@echo "   ✅ Updated .env with new hostname"
 
 install-generate-credentials: ## Generate secure passwords and keys
 	@echo "🔐 Generating secure credentials..."
@@ -153,7 +146,7 @@ install-full: ## Complete installation with custom LocalSettings.php
 	@echo "📖 Check connection-info.txt for access details"
 
 update:
-	@$(MAKE) install
+	@$(MAKE) install-full
 	@$(MAKE) restart
 	$(DC) exec mediawiki composer update --no-dev --prefer-dist --optimize-autoloader --no-scripts
 	$(DC) exec mediawiki php maintenance/update.php --quick
