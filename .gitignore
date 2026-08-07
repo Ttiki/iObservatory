@@ -113,4 +113,4 @@ yarn-error.log
 #############################################
 connection-info.txt
 .editorconfig
-./services/minio/data
+/services/minio/data

@@ -287,7 +287,6 @@ wfLoadExtension('TemplateWizard');
 wfLoadExtension('TextExtracts');
 wfLoadExtension('TitleBlacklist');
 wfLoadExtension('Translate');
-wfLoadExtension('TreeAndMenu');
 wfLoadExtension('UniversalLanguageSelector');
 wfLoadExtension( 'Variables' );
 wfLoadExtension( 'VisualEditor' );
