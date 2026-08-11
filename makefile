@@ -86,6 +86,17 @@ endef
 
 .DEFAULT_GOAL := help
 
+# ==============================================================================
+# PLATFORM
+# ==============================================================================
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+    SED_INPLACE := sed -i ''
+else
+    SED_INPLACE := sed -i
+endif
 
 # ==============================================================================
 # HELP
@@ -201,27 +212,38 @@ init-env: ## ⚙️ Create missing .env files from .env.example files
 
 .PHONY: credentials
 
-credentials: ## 🔐 Generate secure passwords and keys
-	@printf "  $(BLUE)🔐 Generating secure credentials...$(RESET)\n"
-
+credentials: ## 🔐 Generate missing secure credentials
+	@printf "  $(BLUE)🔐 Checking secure credentials...$(RESET)\n"
 	@NEW_ADMIN_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_HOP_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_SECRET_KEY=$$(openssl rand -hex 32); \
 	NEW_UPGRADE_KEY=$$(openssl rand -base64 12 | tr -d '=+/'); \
 	\
-	sed -i "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
-		services/mediawiki/.env; \
+	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
+		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
+			services/mediawiki/.env; \
+		printf "     $(GREEN)✔$(RESET) MediaWiki admin password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) MediaWiki admin password already exists\n"; \
+	fi; \
 	\
-	sed -i "s/^MEDIAWIKI_SECRET_KEY=.*/MEDIAWIKI_SECRET_KEY=$$NEW_SECRET_KEY/" \
-		services/mediawiki/.env; \
+	if grep -q '^MEDIAWIKI_SECRET_KEY=$$' services/mediawiki/.env; then \
+		$(SED_INPLACE) "s/^MEDIAWIKI_SECRET_KEY=.*/MEDIAWIKI_SECRET_KEY=$$NEW_SECRET_KEY/" \
+			services/mediawiki/.env; \
+		printf "     $(GREEN)✔$(RESET) MediaWiki secret key generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) MediaWiki secret key already exists\n"; \
+	fi; \
 	\
-	sed -i "s/^MEDIAWIKI_UPGRADE_KEY=.*/MEDIAWIKI_UPGRADE_KEY=$$NEW_UPGRADE_KEY/" \
-		services/mediawiki/.env; \
-	\
-	sed -i 's/password="[^"]*"/password="'"$$NEW_HOP_PWD"'"/' \
-		services/hop-web/tomcat/config/tomcat-users.xml
+	if grep -q '^MEDIAWIKI_UPGRADE_KEY=$$' services/mediawiki/.env; then \
+		$(SED_INPLACE) "s/^MEDIAWIKI_UPGRADE_KEY=.*/MEDIAWIKI_UPGRADE_KEY=$$NEW_UPGRADE_KEY/" \
+			services/mediawiki/.env; \
+		printf "     $(GREEN)✔$(RESET) MediaWiki upgrade key generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) MediaWiki upgrade key already exists\n"; \
+	fi
 
-	$(call success,Credentials generated)
+	$(call success,Credential check complete)
 
 
 # ==============================================================================
