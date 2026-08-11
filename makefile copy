@@ -51,30 +51,26 @@ mw-extensions:
 	else \
 		echo "   ⚠️  Failed to clone TabberNeue, skipping..."; \
 	fi
-	@if git clone --depth 1 https://github.com/neayi/mw-echarts.git services/mediawiki/extensions/ECharts && echo " then  \
-    echo "   ✅ ECharts added (default branch)"; \
-  else \
-    echo "   ⚠️  Failed to clone ECharts, skipping..."
-  fi;
+	@git clone --depth 1 https://github.com/neayi/mw-echarts.git services/mediawiki/extensions/ECharts && echo "   ✅ ECharts added (default branch)" || echo "   ⚠️  Failed to clone ECharts, skipping..."
 	@cd services/mediawiki/extensions/VisualEditor && git submodule update --init
 
+mw-install: ## Install MediaWiki via CLI and setup custom config
 	@echo "📦 Installing composer extensions..."
 	$(DC) exec mediawiki composer update --no-dev --prefer-dist --optimize-autoloader --no-scripts || echo "⚠️ Composer update failed, continuing..."
 
-mw-install: ## Install MediaWiki via CLI and setup custom config
 	@echo "🚀 Starting MediaWiki CLI installation..."
 	@if $(DC) exec mediawiki php maintenance/run.php install \
 		--dbtype=mysql \
 		--dbserver=mariadb \
-		--dbname=$$MARIADB_DATABASE \
-		--dbuser=$$MARIADB_USER \
-		--dbpass=$$MARIADB_ROOT_PASSWORD \
-		--server="http://$$HOSTNAME" \
+		--dbname=$(shell grep MARIADB_DATABASE= services/mediawiki/.env | cut -d'=' -f2) \
+		--dbuser=$(shell grep MARIADB_USER= services/mediawiki/.env | cut -d'=' -f2) \
+		--dbpass=$(shell grep MARIADB_ROOT_PASSWORD= services/mediawiki/.env | cut -d'=' -f2) \
+		--server="http://$(shell grep HOSTNAME= .env | cut -d'=' -f2)" \
 		--scriptpath="" \
 		--lang=en \
-		--pass=$$MEDIAWIKI_ADMIN_PWD\
-		"$$OBSERVATORY_NAME \
-		"$$MEDIAWIKI_ADMIN_USER"; then \
+		--pass=$(shell grep MEDIAWIKI_ADMIN_PWD= services/mediawiki/.env | cut -d'=' -f2) \
+		"$(shell grep OBSERVATORY_NAME= .env | cut -d'=' -f2)" \
+		"$(shell grep MEDIAWIKI_ADMIN_USER= services/mediawiki/.env | cut -d'=' -f2)"; then \
 		echo "✅ MediaWiki basic installation completed"; \
 	else \
 		echo "⚠️ MediaWiki installation failed, continuing..."; \
