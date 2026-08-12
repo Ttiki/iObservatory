@@ -256,6 +256,8 @@ make credentials
 
 Generate missing security credentials.
 
+You should only run the `make install` command as it performs the initial setup of the platform and call the other commands. After that, use `make update` for maintenance.
+
 ### MediaWiki
 
 ```bash
