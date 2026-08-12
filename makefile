@@ -1,3 +1,12 @@
+include .env
+include services/etl/hop-server/.env
+include services/etl/hop-web/.env
+include services/mariadb/.env
+include services/mediawiki/.env
+include services/minio/.env
+include services/pma/.env
+include services/postgres/.env
+include services/strapi/.env
 # ==============================================================================
 # iObservatory - Makefile
 # ==============================================================================
