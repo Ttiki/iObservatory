@@ -253,33 +253,48 @@ credentials: ## 🔐 Generate missing secure credentials
 .PHONY: extensions
 
 extensions: ## 📦 Install configured MediaWiki extensions
-	@printf "  $(BLUE)📦 Synchronising MediaWiki extensions...$(RESET)\n"
+	@printf "  $(BLUE)📦 Installing MediaWiki extensions...$(RESET)\n"
 
 	@mkdir -p services/mediawiki/extensions
 
-	@if [ -f services/mediawiki/extensions.config ]; then \
-		while read -r line; do \
-			[ -z "$$line" ] && continue; \
-			case "$$line" in \#*) continue ;; esac; \
-			ext=$$(echo "$$line" | awk '{print $$1}'); \
-			printf "     $(CYAN)%-30s$(RESET)" "$$ext"; \
-			if [ -d "services/mediawiki/extensions/$$ext/.git" ]; then \
-				printf "$(GREEN)already installed$(RESET)\n"; \
+	@while read -r type ext url; do \
+		[ -z "$$type" ] && continue; \
+		case "$$type" in \#*) continue ;; esac; \
+		\
+		printf "     $(CYAN)%-30s$(RESET)" "$$ext"; \
+		\
+		if [ "$$type" = "gerrit" ]; then \
+			if [ -d "services/mediawiki/extensions/$$ext" ]; then \
+				printf "$(GREEN)already exists$(RESET)\n"; \
+			elif git clone --depth 1 \
+				--branch $(DEFAULT_EXT_VERSION) \
+				"https://gerrit.wikimedia.org/r/mediawiki/extensions/$$ext" \
+				"services/mediawiki/extensions/$$ext" \
+				> /dev/null 2>&1; then \
+				printf "$(GREEN)✔ installed$(RESET)\n"; \
 			else \
-				if git clone --depth 1 \
-					--branch $(DEFAULT_EXT_VERSION) \
-					"https://gerrit.wikimedia.org/r/mediawiki/extensions/$$ext" \
-					"services/mediawiki/extensions/$$ext" \
-					> /dev/null 2>&1; then \
-					printf "$(GREEN)✔ installed$(RESET)\n"; \
-				else \
-					printf "$(RED)✖ failed$(RESET)\n"; \
-				fi; \
+				printf "$(RED)✖ failed$(RESET)\n"; \
+				exit 1; \
 			fi; \
-		done < services/mediawiki/extensions.config; \
-	fi
+		\
+		elif [ "$$type" = "github" ]; then \
+			if [ -d "services/mediawiki/extensions/$$ext" ]; then \
+				printf "$(GREEN)already exists$(RESET)\n"; \
+			elif git clone --depth 1 "$$url" \
+				"services/mediawiki/extensions/$$ext" \
+				> /dev/null 2>&1; then \
+				printf "$(GREEN)✔ installed$(RESET)\n"; \
+			else \
+				printf "$(RED)✖ failed$(RESET)\n"; \
+				exit 1; \
+			fi; \
+		else \
+			printf "$(RED)✖ unknown source$(RESET)\n"; \
+			exit 1; \
+		fi; \
+	done < services/mediawiki/extensions.config
 
-	$(call success,Extensions ready)
+	$(call success,All extensions installed successfully)
 
 
 # ==============================================================================
@@ -383,7 +398,6 @@ pull: ## ⬇️ Pull latest Docker images
 # ==============================================================================
 
 .PHONY: mediawiki-install
-
 mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 	@printf "  $(BLUE)🧱 Installing MediaWiki...$(RESET)\n"
 
@@ -391,22 +405,21 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 		php maintenance/run.php install \
 		--dbtype=mysql \
 		--dbserver=mariadb \
-		--dbname=$$MARIADB_DATABASE \
-		--dbuser=$$MARIADB_USER \
-		--dbpass=$$MARIADB_ROOT_PASSWORD \
-		--server="http://$$HOSTNAME" \
+		--dbname="$${MARIADB_DATABASE}" \
+		--dbuser="$${MARIADB_USER}" \
+		--dbpass="$${MARIADB_ROOT_PASSWORD}" \
+		--server="http://$${HOSTNAME}:8080" \
 		--scriptpath="" \
 		--lang=en \
-		--pass=$$MEDIAWIKI_ADMIN_PWD \
-		"$$OBSERVATORY_NAME" \
-		"$$MEDIAWIKI_ADMIN_USER"
+		--pass="$${MEDIAWIKI_ADMIN_PWD}" \
+		"$${OBSERVATORY_NAME}" \
+		"$${MEDIAWIKI_ADMIN_USER}"
+
+	$(call success,MediaWiki installation complete)
 
 	@$(MAKE) --no-print-directory composer-install
 
-	@$(DC) exec $(MEDIAWIKI_SERVICE) \
-		php maintenance/run.php update --quick
-
-	$(call success,MediaWiki installed)
+	@$(MAKE) --no-print-directory mediawiki-update
 
 
 .PHONY: mediawiki-update
