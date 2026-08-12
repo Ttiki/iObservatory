@@ -403,19 +403,27 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 
 	@$(MAKE) --no-print-directory composer-install
 
-	@$(DC) exec $(MEDIAWIKI_SERVICE) \
+	@$(DC) exec \
+		-e MARIADB_DATABASE \
+		-e MARIADB_USER \
+		-e MARIADB_ROOT_PASSWORD \
+		-e MEDIAWIKI_ADMIN_PWD \
+		-e MEDIAWIKI_ADMIN_USER \
+		-e OBSERVATORY_NAME \
+		-e HOSTNAME \
+		$(MEDIAWIKI_SERVICE) \
 		php maintenance/run.php install \
-		--dbtype=mysql \
-		--dbserver=mariadb \
-		--dbname="$${MARIADB_DATABASE}" \
-		--dbuser="$${MARIADB_USER}" \
-		--dbpass="$${MARIADB_ROOT_PASSWORD}" \
-		--server="http://$${HOSTNAME}:8080" \
-		--scriptpath="" \
-		--lang=en \
-		--pass="$${MEDIAWIKI_ADMIN_PWD}" \
-		"$${OBSERVATORY_NAME}" \
-		"$${MEDIAWIKI_ADMIN_USER}"
+			--dbtype=mysql \
+			--dbserver=mariadb \
+			--dbname="$${MARIADB_DATABASE}" \
+			--dbuser="$${MARIADB_USER}" \
+			--dbpass="$${MARIADB_ROOT_PASSWORD}" \
+			--server="http://$${HOSTNAME}:8080" \
+			--scriptpath="" \
+			--lang=en \
+			--pass="$${MEDIAWIKI_ADMIN_PWD}" \
+			"$${OBSERVATORY_NAME}" \
+			"$${MEDIAWIKI_ADMIN_USER}"
 
 	$(call success,MediaWiki installation complete)
 
