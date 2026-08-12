@@ -401,7 +401,7 @@ pull: ## ⬇️ Pull latest Docker images
 mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 	@printf "  $(BLUE)🧱 Installing MediaWiki...$(RESET)\n"
 
-  @$(MAKE) --no-print-directory composer-install
+	@$(MAKE) --no-print-directory composer-install
 
 	@$(DC) exec $(MEDIAWIKI_SERVICE) \
 		php maintenance/run.php install \
