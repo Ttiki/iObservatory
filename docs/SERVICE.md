@@ -1,48 +1,114 @@
-# Service Overview
+# 🧩 Components
 
-Each service is Dockerized and configured via its own `.env` file.
+## 🌐 MediaWiki
+
+**Semantic knowledge management and ontology platform**
+
+MediaWiki provides the main knowledge-management interface of the platform.
+
+It can be used to:
+
+* Create and manage structured knowledge
+* Develop and populate ontologies
+* Define templates and schemas
+* Collect structured information
+* Provide a human-facing interface for knowledge management
+* Expose structured information to other components
+
+### Semantic extensions
+
+The default configuration can include extensions such as:
+
+* **Cargo** — Store and query structured data
+* **PageForms** — Provide forms for structured data entry
+* **PageSchemas** — Define schemas for pages and forms
+* **VisualEditor** — WYSIWYG editing
+* **Arrays** — Array manipulation in templates
+* **Variables** — Advanced template programming
+
+Additional MediaWiki extensions can be configured through:
+
+```text
+services/mediawiki/extensions.config
+```
 
 ---
 
-## MediaWiki
-- **URL**: `/mediawiki/`
-- **DB**: MariaDB
-- **Volumes**:
-  - `images/`
-  - `extensions/`
-  - `LocalSettings.php` (read-only)
+## 🗄️ MariaDB
 
-## Strapi
-- **URL**: `/strapi/`
-- **DB**: PostgreSQL
-- **Volumes**:
-  - `config/`, `src/`
-  - `public/uploads/`
+**MediaWiki relational database**
 
-## Apache Hop
-- **URL**: `/hop/`
-- **DB**: PostgreSQL
-- **Volume**: `projects/` (mounted to `/project`)
+MariaDB is used as the primary database backend for MediaWiki.
 
-## MinIO
-- **URL**: `/minio/`
-- **Volumes**: `/services/minio/data/`
+It stores:
 
-## PostgreSQL
-- **Used by**: Strapi, Apache Hop
-- **Volume**: `dw-data/`
+* Wiki content
+* User information
+* MediaWiki configuration data
+* Structured data managed by MediaWiki extensions
 
-## MariaDB
-- **Used by**: MediaWiki
-- **Volume**: `mariadb/`
+The database is normally exposed only inside the Docker network.
 
-## phpMyAdmin
-- **URL**: `/pma/`
-- **For**: MariaDB
+---
 
-## pgAdmin
-- **URL**: `/pga/`
-- **For**: PostgreSQL
+## 🐘 PostgreSQL
 
-## nginx-proxy & acme-companion
-- Auto HTTPS via Docker labels and Let's Encrypt
+**Relational data storage**
+
+PostgreSQL provides a separate relational database that can be used by other Observatory components.
+
+Keeping PostgreSQL separate from MediaWiki's MariaDB database allows the platform to maintain distinct data domains and services.
+
+---
+
+## 🏭 Apache Hop Web
+
+**Data integration and ETL**
+
+Apache Hop provides the data integration layer of the platform.
+
+It can be used to:
+
+* Import external datasets
+* Process CSV files
+* Clean and transform data
+* Connect to external databases and APIs
+* Normalise data
+* Prepare data for ingestion into other platform components
+* Automate repeatable data-processing workflows
+
+### Directory structure
+
+```text
+services/hop-web/
+│
+├── projects/
+│   └── Source data and project files
+│
+└── pipelines/
+    ├── *.hpl
+    └── *.hwf
+```
+
+These directories are mounted into the Apache Hop container.
+
+---
+
+## 🪣 MinIO
+
+**Object storage**
+
+MinIO provides S3-compatible object storage for files, datasets, artefacts, and other objects used by the platform.
+
+It can be used as a storage layer independently from the relational databases.
+
+---
+
+## 📝 Strapi
+
+**Content and API layer**
+
+Strapi can be used when a traditional headless CMS or API-oriented content management layer is required.
+
+Its inclusion in the stack is optional and can be adapted according to the requirements of a particular Observatory deployment.
+

@@ -462,6 +462,16 @@ backup-mariadb: ## 💾 Create a MariaDB database backup
 		> services/mariadb/backups/backup_$$(date +%F_%H-%M-%S).sql
 	$(call success,Database backup created)
 
+.PHONY: backup-postgres
+
+backup-postgres: ## 💾 Create a PostgreSQL database backup
+	@mkdir -p services/postgres/backups
+	@printf "  $(BLUE)💾 Creating PostgreSQL backup...$(RESET)\n"
+	@$(DC) exec postgres sh -c \
+		'pg_dump -U"$$POSTGRES_USER" -d"$$POSTGRES_DB"' \
+		> services/postgres/backups/backup_$$(date +%F_%H-%M-%S).sql
+	$(call success,Database backup created)
+
 
 # ==============================================================================
 # DEVELOPMENT / DEBUGGING

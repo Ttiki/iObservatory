@@ -1,82 +1,42 @@
-# Backup and Restore Guide
+# 💾 Database Backups
 
-How to backup and restore your databases safely.
-
----
-
-## Backup MariaDB
-
-Backup your MediaWiki database:
+## MariaDB Backup
+Create a MariaDB backup with:
 
 ```bash
 make backup-mariadb
 ```
 
-The backups will be saved inside:
+Backups are stored in:
 
+```text
+services/mariadb/backups/
 ```
-services/database/backups/
+
+with filenames similar to:
+
+```text
+backup_2026-08-12_10-30-00.sql
 ```
 
-Only the **7 latest backups** are kept automatically.
+Regular backups should be configured according to the deployment's operational requirements.
 
----
-
-## Backup PostgreSQL
-
-Backup your Strapi/PostgreSQL database:
-
+## PostgreSQL Backup
+Create a PostgreSQL backup with:
 ```bash
 make backup-postgres
 ```
 
-The backups will be saved inside:
+Backups are stored in:
 
-```
-services/datawarehouse/backups/
-```
-
-Same rotation: 7 backups kept.
-
----
-
-## Full Backup
-
-To backup **both databases** at once:
-
-```bash
-make backup
+```text
+services/postgres/backups/
 ```
 
----
+with filenames similar to:
 
-## Restore MariaDB
-
-Restore the latest MariaDB backup:
-
-```bash
-make restore-mariadb
+```text
+backup_2026-08-12_10-30-00.sql
 ```
 
----
-
-## Restore PostgreSQL
-
-Restore the latest PostgreSQL backup:
-
-```bash
-make restore-postgres
-```
-
----
-
-## Cleaning Backups
-
-To delete all backups manually:
-
-```bash
-make backup-clean
-```
-
----
-
+Regular backups should be configured according to the deployment's operational requirements.

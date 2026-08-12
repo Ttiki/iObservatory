@@ -1,184 +1,386 @@
 # iObservatory Boilerplate Stack
 
-This is a Docker-based boilerplate stack for building a **data-driven Impact Observatory platform**, combining open-source tools like MediaWiki, Strapi, Apache Hop, PostgreSQL, and MinIO. The architecture is designed to be modular, extensible, and privacy-conscious.
+A Docker-based boilerplate for building **data-driven Observatory platforms**.
 
-> ⚠️ This repository is a **starting point**, not a plug-and-play solution. Some configuration and initialization steps are required before use.
+The stack combines open-source services for knowledge management, data integration, databases, and data storage. It is designed as a **generic starting point** that can be adapted to different Observatory use cases, domains, organisations, and data infrastructures.
 
-## 🏗️ Project Architecture
+The platform is modular: individual services can be configured, extended, replaced, or removed depending on the needs of the deployment.
 
-```
-📁 mediawiki/
-├── 🐳 docker-compose.yml          # Service orchestration
-├── 📋 makefile                    # Task automation
-├── 🔧 .env                        # Global environment variables
-├── 🚫 .gitignore                  # Version control exclusions
-└── 📂 services/
-    ├── 🌐 mediawiki/              # Semantic Wiki Service
-    │   ├── 🐳 MediaWiki.Dockerfile
-    │   ├── ⚙️ LocalSettings.php
-    │   ├── 🔧 .env
-    │   ├── 📦 composer.local.json
-    │   ├── 📋 extensions.config
-    │   └── 🔌 extensions/         # Semantic extensions
-    ├── 🗄️ mariadb/                # Database layer
-    │   └── 🔧 .env
-    └── 🏭 hop-web/                # ETL Processing
-        ├── 🔧 .env
-        ├── 📁 projects/            # CSV data and source files
-        ├── 📁 pipelines/           # Hop transformation pipelines
-        └── 🐱 tomcat/config/
-```
+> **⚠️ This repository is a template, not a plug-and-play application.**
+>
+> The first installation automatically creates environment files, generates credentials, installs configured extensions, builds the Docker stack, and initialises MediaWiki. Deployment-specific configuration may still be required.
 
 ---
 
-## 🧩 Components
+# 🏗️ Architecture
 
-### 🌐 MediaWiki (Port 8080)
-**Semantic Wiki Platform for Ontology Development**
-
-- **Version:** Compatible REL1_43
-- **Purpose:** Create, manage and populate ontologies
-- **Key Semantic Extensions:**
-  - **Cargo:** Store and query structured data in wiki pages
-  - **PageForms:** Create forms for structured data entry
-  - **PageSchemas:** Define data schemas and templates
-  - **VisualEditor:** WYSIWYG editing for better user experience
-  - **Arrays, Variables:** Advanced template programming
-
-### 🗄️ MariaDB (Port 3306 - internal)
-**Relational Database Backend**
-
-- **Version:** 11.4 (LTS)
-- **Purpose:** Store wiki content, semantic data, and ontology relationships
-- **Configuration:** Optimized for MediaWiki with full UTF-8 support
-
-### 🏭 Apache Hop Web (Port 8081)
-**ETL Platform for Data Integration**
-
-- **Version:** Latest
-- **Purpose:** Extract, Transform, and Load data into the semantic wiki
-- **Data Storage:**
-  - **`/projects`:** CSV files and source data for processing
-  - **`/pipelines`:** Hop transformation pipelines and workflows
-- **Use Cases:**
-  - Transform CSV files into wiki-compatible formats
-  - Connect to external databases and APIs
-  - Clean and normalize data before ontology population
-  - Create automated data pipelines
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for a detailed overview of the stack architecture, services, and components.
 
 ---
 
-## 📦 Configuration
+# 🧩 Components
 
-
-### 🌐 Network Configuration
-- **Required Ports:**
-  - `8080`: MediaWiki (semantic wiki interface)
-  - `8081`: Apache Hop Web (ETL interface)
-  - `3306`: MariaDB (internal only)
+See [SERVICE.md](docs/SERVICE.md) for a description of the individual services and their roles in the stack.
 
 ---
 
-## 🚀 Deployment Instructions
+# 🚀 Installation
 
-### Platform Deployment
+See [SETUP.md](docs/SETUP.md) for a step-by-step installation guide.
+
+---
+
+
+# 🐳 Docker Lifecycle
+
+The Makefile provides shortcuts around Docker Compose.
+
+## Start
+
 ```bash
-# Run the automated deployment
+make up
+```
+
+Starts all services in the background.
+
+## Stop
+
+```bash
+make down
+```
+
+Stops and removes the Compose containers.
+
+## Restart
+
+```bash
+make restart
+```
+
+Restarts the running services.
+
+## Build
+
+```bash
+make build
+```
+
+Builds the Docker images.
+
+## Rebuild without cache
+
+```bash
+make rebuild
+```
+
+Useful after changes to Dockerfiles or dependencies.
+
+## Pull images
+
+```bash
+make pull
+```
+
+Pulls the latest configured Docker images.
+
+## Status
+
+```bash
+make status
+```
+
+Displays the current container status.
+
+## Logs
+
+```bash
+make logs
+```
+
+Follows the latest container logs.
+
+---
+
+# 🔄 Maintenance
+
+After the initial installation, **do not run `make install` again**.
+
+The normal maintenance command is:
+
+```bash
 make update
 ```
 
-**This command will:**
-- ✅ Generate secure passwords for all services
-- ✅ Configure all environment files
-- ✅ Download MediaWiki semantic extensions
-- ✅ Build and start all containers
-- ✅ Create `connection-info.txt` with access details
+The update pipeline is designed for an already-installed platform.
 
-### 4️⃣ Deployment Verification
-```bash
-# Check all containers are running
-docker ps
+It can perform:
 
-# Check logs for any issues
-make logs
-
-# Test service accessibility
-curl -I http://[YOUR_IP]:8080
-curl -I http://[YOUR_IP]:8081
+```text
+Pull latest images
+       ↓
+Synchronise extensions
+       ↓
+Rebuild containers
+       ↓
+Start services
+       ↓
+Update Composer dependencies
+       ↓
+Update MediaWiki database
 ```
+
+For more controlled maintenance, the individual commands can be executed separately.
+
+For example:
+
+```bash
+make extensions
+make composer
+make mediawiki-update
+```
+
 ---
 
-## 🔧 Configuration
+# 🛠️ MediaWiki Maintenance
 
-### 📄 Key Configuration Files
+## Update the database
 
-#### 🌐 `.env` (Root)
-```env
-HOSTNAME=[YOUR_SERVER_IP]
-SITE_NAME=semantic-web
+```bash
+make mediawiki-update
 ```
 
-#### 🗄️ `services/mediawiki/.env`
-```env
-MEDIAWIKI_ADMIN_USER=admin
-MEDIAWIKI_ADMIN_PWD=[AUTO_GENERATED]
-MEDIAWIKI_SECRET_KEY=[AUTO_GENERATED]
-MEDIAWIKI_UPGRADE_KEY=[AUTO_GENERATED]
-MARIADB_DATABASE=semantic_web_db
-MARIADB_USER=root
-MARIADB_ROOT_PASSWORD=[AUTO_GENERATED]
+Runs the MediaWiki database update process.
+
+## Open a MediaWiki shell
+
+```bash
+make shell
 ```
 
-### 🔐 Access Information
+This opens a shell inside the MediaWiki container.
 
-After installation, check the `connection-info.txt` file:
+This is useful for debugging and running MediaWiki commands manually.
+
+---
+
+# 💾 Database Backups
+
+See [BACKUP.md](docs/BACKUP.md) for instructions on creating and managing MariaDB/PostgreSQL backups.
+
+---
+
+# 🌐 Accessing the Platform
+
+The exact URLs depend on the values configured in the root `.env` and Docker Compose configuration.
+
+The default services include:
+
+| Service        |          Default port | Purpose                           |
+| -------------- | --------------------: | --------------------------------- |
+| MediaWiki      |                `8080` | Knowledge and ontology management |
+| Apache Hop Web |                `8081` | Data integration and ETL          |
+| MariaDB        |                `3306` | MediaWiki database                |
+| PostgreSQL     | Configured in Compose | Relational data                   |
+| MinIO          | Configured in Compose | Object storage                    |
+
+After installation, the generated:
+
+```text
+connection-info.txt
+```
+
+contains the configured access information.
+
+You can inspect it with:
+
 ```bash
 cat connection-info.txt
 ```
 
-**Sample content:**
+---
+
+# 🔐 Security
+
+This repository contains infrastructure capable of handling potentially sensitive data.
+
+Never commit:
+
+```text
+.env
+connection-info.txt
 ```
-## MediaWiki Access
-URL: http://[SERVER_IP]/mediawiki
-Admin User: admin
-Admin Password: [20_SECURE_CHARACTERS]
 
-## Apache Hop Web Access
-URL: http://[SERVER_IP]:8081
-Username: admin
-Password: [20_SECURE_CHARACTERS]
+or other files containing credentials.
 
-## Database Information
-Database Name: semantic_web_db
-Database User: root
-Database Password: [20_SECURE_CHARACTERS]
+Only commit the corresponding:
+
+```text
+.env.example
+```
+
+templates.
+
+The `.gitignore` should therefore exclude environment files, generated credentials, database backups, and other deployment-specific artefacts.
+
+---
+
+# 📋 Makefile Command Reference
+
+Run:
+
+```bash
+make help
+```
+
+to display the commands available in the current version of the platform.
+
+The main commands are:
+
+### First installation
+
+```bash
+make install
+```
+
+Complete first-time installation.
+
+```bash
+make init-env
+```
+
+Create missing `.env` files.
+
+```bash
+make credentials
+```
+
+Generate missing security credentials.
+
+### MediaWiki
+
+```bash
+make extensions
+make composer-install
+make composer
+make mediawiki-install
+make mediawiki-update
+```
+
+### Docker
+
+```bash
+make build
+make rebuild
+make up
+make down
+make restart
+make pull
+make status
+make logs
+```
+
+### Maintenance
+
+```bash
+make update
+make backup-mariadb
+make shell
 ```
 
 ---
 
-## 💡 Usage
+# 🧭 Typical Workflows
 
-### 🌐 Accessing MediaWiki
-1. **URL:** `http://[YOUR_IP]:8080/`
-2. **Login:** Use credentials from `connection-info.txt`
-3. **First Steps:**
-   - Create your first semantic page
-   - Define templates for your ontology
-   - Set up forms for data entry
-   - Configure namespaces for different data types
+## First deployment
 
-### 🏭 Accessing Apache Hop
-1. **URL:** `http://[YOUR_IP]:8081`
-2. **Login:** Username `admin` + generated password
-3. **First Steps:**
-   - Explore the interface
-   - Create your first data transformation pipeline
-   - Configure data source connections
-   - Test data transformations
+```bash
+git clone <repository-url>
+cd <repository-directory>
 
-### 📁 Apache Hop Directory Structure
-- **`services/hop-web/projects/`** - Place your CSV files and source data here
-- **`services/hop-web/pipelines/`** - Store your Hop transformation pipelines (.hpl) and workflows (.hwf)
-  - Transformations are saved automatically in this directory
-  - Accessible as `/opt/hop/pipelines` inside the container
-  - Includes subdirectories for organizing different projects
+make init-env
+# Review and configure .env files
+
+make install
+```
+
+---
+
+## Everyday use
+
+```bash
+make up
+```
+
+Then access the required services.
+
+When finished:
+
+```bash
+make down
+```
+
+---
+
+## Adding a MediaWiki extension
+
+```bash
+# Edit services/mediawiki/extensions.config
+
+make extensions
+make composer              # if required
+make mediawiki-update     # if required
+```
+
+---
+
+## Updating the platform
+
+```bash
+make update
+```
+
+---
+
+## Troubleshooting
+
+Check service status:
+
+```bash
+make status
+```
+
+View logs:
+
+```bash
+make logs
+```
+
+Open the MediaWiki container:
+
+```bash
+make shell
+```
+
+Rebuild the Docker images:
+
+```bash
+make rebuild
+```
+
+---
+
+# 📐 Design Philosophy
+
+iObservatory is intended to provide a **reusable technical foundation**, rather than a fixed application.
+
+The stack therefore follows several principles:
+
+* **Modularity** — services can be added, removed, or replaced.
+* **Extensibility** — MediaWiki extensions and data-processing pipelines can be added independently.
+* **Separation of concerns** — knowledge management, relational storage, ETL, and object storage are provided by separate services.
+* **Automation** — repetitive deployment and maintenance tasks are exposed through the Makefile.
+* **Configuration through environment files** — deployment-specific values remain outside the application template.
+* **Reproducibility** — `.env.example`, Docker Compose, extension configuration, and Make targets provide a repeatable deployment process.
+* **Privacy-conscious deployment** — the stack is designed to support self-hosted infrastructure and local control of data.
+
+The objective is to provide a foundation on which different Observatory platforms can be developed without requiring the underlying deployment architecture to be redesigned from scratch.
