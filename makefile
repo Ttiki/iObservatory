@@ -427,15 +427,15 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 		php maintenance/run.php install \
 			--dbtype=mysql \
 			--dbserver=mariadb \
-			--dbname="$(MARIADB_DATABASE)" \
-			--dbuser="$(MARIADB_USER)" \
-			--dbpass="$(MARIADB_ROOT_PASSWORD)" \
-			--server="http://$(HOSTNAME):8080" \
+			--dbname="${MARIADB_DATABASE}" \
+			--dbuser="${MARIADB_USER}" \
+			--dbpass="${MARIADB_ROOT_PASSWORD}" \
+			--server="http://${HOSTNAME}:8080" \
 			--scriptpath="" \
 			--lang=en \
-			--pass="$(MEDIAWIKI_ADMIN_PWD)" \
-			"$(OBSERVATORY_NAME)" \
-			"$(MEDIAWIKI_ADMIN_USER)"
+			--pass="${MEDIAWIKI_ADMIN_PWD}" \
+			"${OBSERVATORY_NAME}" \
+			"${MEDIAWIKI_ADMIN_USER}"
 
 	$(call success,MediaWiki installation complete)
 
