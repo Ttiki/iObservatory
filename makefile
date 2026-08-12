@@ -417,7 +417,6 @@ pull: ## ⬇️ Pull latest Docker images
 # ==============================================================================
 
 .PHONY: mediawiki-install
-.PHONY: mediawiki-install
 mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 	@printf "  $(BLUE)🧱 Installing MediaWiki...$(RESET)\n"
 
@@ -431,6 +430,8 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 			--dbuser="${MARIADB_USER}" \
 			--dbpass="${MARIADB_ROOT_PASSWORD}" \
 			--server="http://${HOSTNAME}:8080" \
+			--adminpass="${MEDIAWIKI_ADMIN_PWD}" \
+			--admin=admin \
 			--scriptpath="" \
 			--lang=en \
 			--pass="${MEDIAWIKI_ADMIN_PWD}" \
