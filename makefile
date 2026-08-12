@@ -1,12 +1,3 @@
-include .env
-include services/etl/hop-server/.env
-include services/etl/hop-web/.env
-include services/mariadb/.env
-include services/mediawiki/.env
-include services/minio/.env
-include services/pma/.env
-include services/postgres/.env
-include services/strapi/.env
 # ==============================================================================
 # iObservatory - Makefile
 # ==============================================================================
@@ -45,6 +36,24 @@ MEDIAWIKI_SERVICE := mediawiki
 
 DEFAULT_EXT_VERSION := REL1_42
 
+# ==============================================================================
+# Environment
+# ==============================================================================
+
+ENV_FILES := \
+	.env \
+	services/etl/hop-server/.env \
+	services/etl/hop-web/.env \
+	services/mariadb/.env \
+	services/mediawiki/.env \
+	services/minio/.env \
+	services/pma/.env \
+	services/postgres/.env \
+	services/strapi/.env
+
+# Ignore missing files during the first Make parsing.
+# They will be created by `make init-env`.
+-include $(ENV_FILES)
 
 # ==============================================================================
 # TERMINAL COLORS
@@ -106,16 +115,6 @@ ifeq ($(UNAME_S),Darwin)
 else
     SED_INPLACE := sed -i
 endif
-
-.PHONY: debug-env
-debug-env: ## 🔍 Show loaded configuration variables
-	@echo "HOSTNAME              = $(HOSTNAME)"
-	@echo "OBSERVATORY_NAME      = $(OBSERVATORY_NAME)"
-	@echo "MEDIAWIKI_ADMIN_USER  = $(MEDIAWIKI_ADMIN_USER)"
-	@echo "MEDIAWIKI_ADMIN_PWD   = $(MEDIAWIKI_ADMIN_PWD)"
-	@echo "MARIADB_DATABASE      = $(MARIADB_DATABASE)"
-	@echo "MARIADB_USER          = $(MARIADB_USER)"
-	@echo "MARIADB_ROOT_PASSWORD = $(MARIADB_ROOT_PASSWORD)"
 
 # ==============================================================================
 # HELP
@@ -213,17 +212,18 @@ install: ## 🚀 Install the platform for the first time
 
 .PHONY: init-env
 
-init-env: ## ⚙️ Create missing .env files from .env.example files
-	@find . -type f -name ".env.example" -print0 | while IFS= read -r -d '' example; do \
-		env="$${example%.example}"; \
-		if [ -f "$$env" ]; then \
-			printf "  $(YELLOW)•$(RESET) %s already exists\n" "$$env"; \
+init-env: ## ⚙️ Create missing .env files from .env.example
+	@printf "\n$(CYAN)⚙️  Initialising environment...$(RESET)\n"
+	@find . -type f -name '.env.example' -print0 | \
+	while IFS= read -r -d '' example; do \
+		target="$${example%.example}"; \
+		if [ ! -f "$$target" ]; then \
+			cp "$$example" "$$target"; \
+			printf "  $(GREEN)✔ Created$(RESET) %s\n" "$$target"; \
 		else \
-			cp "$$example" "$$env"; \
-			printf "  $(GREEN)✔$(RESET) Created %s\n" "$$env"; \
+			printf "  $(YELLOW)↪ Exists$(RESET)  %s\n" "$$target"; \
 		fi; \
 	done
-
 
 # ==============================================================================
 # CREDENTIALS
