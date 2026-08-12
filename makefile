@@ -98,6 +98,16 @@ else
     SED_INPLACE := sed -i
 endif
 
+.PHONY: debug-env
+debug-env: ## 🔍 Show loaded configuration variables
+	@echo "HOSTNAME              = $(HOSTNAME)"
+	@echo "OBSERVATORY_NAME      = $(OBSERVATORY_NAME)"
+	@echo "MEDIAWIKI_ADMIN_USER  = $(MEDIAWIKI_ADMIN_USER)"
+	@echo "MEDIAWIKI_ADMIN_PWD   = $(MEDIAWIKI_ADMIN_PWD)"
+	@echo "MARIADB_DATABASE      = $(MARIADB_DATABASE)"
+	@echo "MARIADB_USER          = $(MARIADB_USER)"
+	@echo "MARIADB_ROOT_PASSWORD = $(MARIADB_ROOT_PASSWORD)"
+
 # ==============================================================================
 # HELP
 # ==============================================================================
@@ -398,32 +408,25 @@ pull: ## ⬇️ Pull latest Docker images
 # ==============================================================================
 
 .PHONY: mediawiki-install
+.PHONY: mediawiki-install
 mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 	@printf "  $(BLUE)🧱 Installing MediaWiki...$(RESET)\n"
 
 	@$(MAKE) --no-print-directory composer-install
 
-	@$(DC) exec \
-		-e MARIADB_DATABASE \
-		-e MARIADB_USER \
-		-e MARIADB_ROOT_PASSWORD \
-		-e MEDIAWIKI_ADMIN_PWD \
-		-e MEDIAWIKI_ADMIN_USER \
-		-e OBSERVATORY_NAME \
-		-e HOSTNAME \
-		$(MEDIAWIKI_SERVICE) \
+	@$(DC) exec $(MEDIAWIKI_SERVICE) \
 		php maintenance/run.php install \
 			--dbtype=mysql \
 			--dbserver=mariadb \
-			--dbname="$${MARIADB_DATABASE}" \
-			--dbuser="$${MARIADB_USER}" \
-			--dbpass="$${MARIADB_ROOT_PASSWORD}" \
-			--server="http://$${HOSTNAME}:8080" \
+			--dbname="$(MARIADB_DATABASE)" \
+			--dbuser="$(MARIADB_USER)" \
+			--dbpass="$(MARIADB_ROOT_PASSWORD)" \
+			--server="http://$(HOSTNAME):8080" \
 			--scriptpath="" \
 			--lang=en \
-			--pass="$${MEDIAWIKI_ADMIN_PWD}" \
-			"$${OBSERVATORY_NAME}" \
-			"$${MEDIAWIKI_ADMIN_USER}"
+			--pass="$(MEDIAWIKI_ADMIN_PWD)" \
+			"$(OBSERVATORY_NAME)" \
+			"$(MEDIAWIKI_ADMIN_USER)"
 
 	$(call success,MediaWiki installation complete)
 
