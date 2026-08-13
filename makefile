@@ -426,10 +426,9 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 		php maintenance/run.php install \
 			--dbtype=mysql \
 			--dbserver=mariadb \
-			--dbname="$(MARIADB_DATABASE)" \
-			--dbuser="$(MARIADB_USER)" \
-			--dbpass="$(MARIADB_ROOT_PASSWORD)" \
-			--server="http://$(HOSTNAME):8080" \
+			--dbname="$(MEDIAWIKI_DB_NAME)" \
+			--dbuser="$(MEDIAWIKI_DB_USER)" \
+			--dbpass="$(MEDIAWIKI_DB_PWD)" \
 			--scriptpath="" \
 			--lang=en \
 			admin \
