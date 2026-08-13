@@ -10,6 +10,7 @@
         "mediawiki/semantic-compound-queries": "~4.0.1",
         "mediawiki/cargo":"~3.9.3",
         "mediawiki/semantic-cite": "~5.0.0",
-        "mediawiki/semantic-scribunto": "~3.0.0"
+        "mediawiki/semantic-scribunto": "~3.0.0",
+        "starcitizentools/tabber-neue": "~4.0.2"
     }
 }
