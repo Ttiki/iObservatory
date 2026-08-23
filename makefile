@@ -240,6 +240,7 @@ credentials: ## 🔐 Generate missing secure credentials
   MEDIAWIKI_DB_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20);\
   MYSQL_ROOT_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
   POSTGRES_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
+  PGADMIN_DEFAULT_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	\
 	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
 		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
@@ -301,6 +302,13 @@ credentials: ## 🔐 Generate missing secure credentials
   else \
     printf "     $(YELLOW)•$(RESET) PostgreSQL password already exists\n"; \
   fi;\
+  if grep -q '^PGADMIN_DEFAULT_PASSWORD=$$' services/pga/.env; then \
+    $(SED_INPLACE) "s/^PGADMIN_DEFAULT_PASSWORD=.*/PGADMIN_DEFAULT_PASSWORD=$$PGADMIN_DEFAULT_PASSWORD/" \
+      services/pga/.env; \
+    printf "     $(GREEN)✔$(RESET) PGAdmin default password generated\n"; \
+  else \
+    printf "     $(YELLOW)•$(RESET) PGAdmin default password already exists\n"; \
+  fi;
 
 
 	$(call success,Credential check complete)
