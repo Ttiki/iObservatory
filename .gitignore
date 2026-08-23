@@ -10,6 +10,7 @@ certbot/
 # Database backups & exports
 /services/database/backups/
 /services/datawarehouse/backups/
+!init.sql
 *.sql
 *.sqlite*
 *.dump
