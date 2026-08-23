@@ -281,8 +281,8 @@ credentials: ## 🔐 Generate missing secure credentials
 	else \
 		printf "     $(YELLOW)•$(RESET) MediaWiki database password already exists\n"; \
 	fi;\
-  if grep -q '^MYSQ_PASSWORD=$$' services/mariadb/.env; then \
-		$(SED_INPLACE) "s/^MYSQ_PASSWORD=.*/MYSQ_PASSWORD=$$MEDIAWIKI_DB_PWD/" \
+  if grep -q '^MYSQL_PASSWORD=$$' services/mariadb/.env; then \
+		$(SED_INPLACE) "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$$MEDIAWIKI_DB_PWD/" \
 			services/mariadb/.env; \
 		printf "     $(GREEN)✔$(RESET) MariaDB password generated\n"; \
 	else \
