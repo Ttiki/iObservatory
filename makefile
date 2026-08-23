@@ -237,6 +237,7 @@ credentials: ## 🔐 Generate missing secure credentials
 	NEW_HOP_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_SECRET_KEY=$$(openssl rand -hex 32); \
 	NEW_UPGRADE_KEY=$$(openssl rand -base64 12 | tr -d '=+/'); \
+  MEDIAWIKI_DB_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20);\
 	\
 	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
 		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
@@ -260,7 +261,25 @@ credentials: ## 🔐 Generate missing secure credentials
 		printf "     $(GREEN)✔$(RESET) MediaWiki upgrade key generated\n"; \
 	else \
 		printf "     $(YELLOW)•$(RESET) MediaWiki upgrade key already exists\n"; \
-	fi
+	fi; \
+	\
+	if grep -q '^HOP_SERVER_PASS=$$' services/etl/hop-server/.env; then \
+		$(SED_INPLACE) "s/^HOP_SERVER_PASS=.*/HOP_SERVER_PASS=$$NEW_HOP_PWD/" \
+			services/etl/hop-server/.env; \
+		printf "     $(GREEN)✔$(RESET) HOP admin password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) HOP admin password already exists\n"; \
+	fi;\
+  \
+	if grep -q '^MEDIAWIKI_DB_PWD=$$' services/mediawiki/.env; then \
+		$(SED_INPLACE) "s/^MEDIAWIKI_DB_PWD=.*/MEDIAWIKI_DB_PWD=$$NEW_HOP_PWD/" \
+			services/mediawiki/.env; \
+		printf "     $(GREEN)✔$(RESET) MediaWiki database password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) MediaWiki database password already exists\n"; \
+	fi;\
+
+
 
 	$(call success,Credential check complete)
 
@@ -431,9 +450,9 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 			--dbpass="$(MEDIAWIKI_DB_PWD)" \
 			--scriptpath="" \
 			--lang=en \
-			admin \
 			--pass="$(MEDIAWIKI_ADMIN_PWD)" \
-			"$(OBSERVATORY_NAME)"
+			"$(OBSERVATORY_NAME)" \
+			"admin"
 
 	$(call success,MediaWiki installation complete)
 
