@@ -275,7 +275,7 @@ credentials: ## 🔐 Generate missing secure credentials
 	fi;\
   \
 	if grep -q '^MEDIAWIKI_DB_PWD=$$' services/mediawiki/.env; then \
-		$(SED_INPLACE) "s/^MEDIAWIKI_DB_PWD=.*/MEDIAWIKI_DB_PWD=$$NEW_HOP_PWD/" \
+		$(SED_INPLACE) "s/^MEDIAWIKI_DB_PWD=.*/MEDIAWIKI_DB_PWD=$$MEDIAWIKI_DB_PWD/" \
 			services/mediawiki/.env; \
 		printf "     $(GREEN)✔$(RESET) MediaWiki database password generated\n"; \
 	else \

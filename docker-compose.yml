@@ -160,6 +160,7 @@ services:
     env_file:
       - .env
       - ./services/postgres/.env
+      - ./services/pga/.env
     environment:
       VIRTUAL_HOST: ${DOMAIN_NAME}
       VIRTUAL_PATH: /pga/
