@@ -32,6 +32,8 @@ SHELL := /bin/bash
 
 DC := docker compose
 
+DC_INSTALL := docker compose -f docker-compose.install.yml
+
 MEDIAWIKI_SERVICE := mediawiki
 
 DEFAULT_EXT_VERSION := REL1_42
@@ -186,10 +188,10 @@ install: ## 🚀 Install the platform for the first time
 	@$(MAKE) --no-print-directory extensions
 
 	$(call info,Building containers...)
-	@$(MAKE) --no-print-directory build
+	@$(MAKE) --no-print-directory DC="$(DC_INSTALL)" build
 
 	$(call info,Starting services...)
-	@$(MAKE) --no-print-directory up
+	@$(MAKE) --no-print-directory DC="$(DC_INSTALL)" up
 
 	$(call info,Waiting for services...)
 	@$(MAKE) --no-print-directory wait
@@ -197,8 +199,8 @@ install: ## 🚀 Install the platform for the first time
 	$(call info,Installing MediaWiki...)
 	@$(MAKE) --no-print-directory mediawiki-install
 
-	$(call info,Generating connection information...)
-	@$(MAKE) --no-print-directory connection-info
+	$(call info,Restoring normal MediaWiki configuration...)
+	@$(MAKE) --no-print-directory up
 
 	@printf "\n"
 	@printf "$(BOLD)$(GREEN)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
@@ -237,10 +239,8 @@ credentials: ## 🔐 Generate missing secure credentials
 	NEW_HOP_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_SECRET_KEY=$$(openssl rand -hex 32); \
 	NEW_UPGRADE_KEY=$$(openssl rand -base64 12 | tr -d '=+/'); \
-  MEDIAWIKI_DB_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20);\
-  MYSQL_ROOT_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
-  POSTGRES_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
-  PGADMIN_DEFAULT_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
+	NEW_MEDIAWIKI_DB_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
+	NEW_MARIADB_ROOT_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	\
 	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
 		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
@@ -275,40 +275,29 @@ credentials: ## 🔐 Generate missing secure credentials
 	fi;\
   \
 	if grep -q '^MEDIAWIKI_DB_PWD=$$' services/mediawiki/.env; then \
-		$(SED_INPLACE) "s/^MEDIAWIKI_DB_PWD=.*/MEDIAWIKI_DB_PWD=$$MEDIAWIKI_DB_PWD/" \
+		$(SED_INPLACE) "s/^MEDIAWIKI_DB_PWD=.*/MEDIAWIKI_DB_PWD=$$NEW_MEDIAWIKI_DB_PWD/" \
 			services/mediawiki/.env; \
 		printf "     $(GREEN)✔$(RESET) MediaWiki database password generated\n"; \
 	else \
 		printf "     $(YELLOW)•$(RESET) MediaWiki database password already exists\n"; \
-	fi;\
-  if grep -q '^MYSQL_PASSWORD=$$' services/mariadb/.env; then \
-		$(SED_INPLACE) "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$$MEDIAWIKI_DB_PWD/" \
+	fi; \
+	\
+	if grep -q '^MYSQL_PASSWORD=$$' services/mariadb/.env; then \
+		$(SED_INPLACE) "s/^MYSQL_PASSWORD=.*/MYSQL_PASSWORD=$$NEW_MEDIAWIKI_DB_PWD/" \
 			services/mariadb/.env; \
-		printf "     $(GREEN)✔$(RESET) MariaDB password generated\n"; \
+		printf "     $(GREEN)✔$(RESET) MariaDB user password generated\n"; \
 	else \
-		printf "     $(YELLOW)•$(RESET) MariaDB password already exists\n"; \
-	fi;\
-  if grep -q '^MYSQL_ROOT_PASSWORD=$$' services/mariadb/.env; then \
-    $(SED_INPLACE) "s/^MYSQL_ROOT_PASSWORD=.*/MYSQL_ROOT_PASSWORD=$$MYSQL_ROOT_PASSWORD/" \
-      services/mariadb/.env; \
-    printf "     $(GREEN)✔$(RESET) MariaDB root password generated\n"; \
-  else \
-    printf "     $(YELLOW)•$(RESET) MariaDB root password already exists\n"; \
-  fi;\
-  if grep -q '^POSTGRES_PASSWORD=$$' services/postgres/.env; then \
-    $(SED_INPLACE) "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$$POSTGRES_PASSWORD/" \
-      services/postgres/.env; \
-    printf "     $(GREEN)✔$(RESET) PostgreSQL password generated\n"; \
-  else \
-    printf "     $(YELLOW)•$(RESET) PostgreSQL password already exists\n"; \
-  fi;\
-  if grep -q '^PGADMIN_DEFAULT_PASSWORD=$$' services/pga/.env; then \
-    $(SED_INPLACE) "s/^PGADMIN_DEFAULT_PASSWORD=.*/PGADMIN_DEFAULT_PASSWORD=$$PGADMIN_DEFAULT_PASSWORD/" \
-      services/pga/.env; \
-    printf "     $(GREEN)✔$(RESET) PGAdmin default password generated\n"; \
-  else \
-    printf "     $(YELLOW)•$(RESET) PGAdmin default password already exists\n"; \
-  fi;
+		printf "     $(YELLOW)•$(RESET) MariaDB user password already exists\n"; \
+	fi; \
+	\
+	if grep -q '^MYSQL_ROOT_PASSWORD=$$' services/mariadb/.env; then \
+		$(SED_INPLACE) "s/^MYSQL_ROOT_PASSWORD=.*/MYSQL_ROOT_PASSWORD=$$NEW_MARIADB_ROOT_PWD/" \
+			services/mariadb/.env; \
+		printf "     $(GREEN)✔$(RESET) MariaDB root password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) MariaDB root password already exists\n"; \
+	fi;
+
 
 
 	$(call success,Credential check complete)
@@ -465,14 +454,16 @@ pull: ## ⬇️ Pull latest Docker images
 # MEDIAWIKI
 # ==============================================================================
 
+
 .PHONY: mediawiki-install
-mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
-	@printf "  $(BLUE)🧱 Installing MediaWiki...$(RESET)\n"
+mediawiki-install: ## 🔄 Update an existing MediaWiki installation
+	@printf "  $(BLUE)🔄 Updating MediaWiki...$(RESET)\n"
 
 	@$(MAKE) --no-print-directory composer-install
 
-	@$(DC) exec $(MEDIAWIKI_SERVICE) \
+	@$(DC) -f docker-compose.install.yml exec $(MEDIAWIKI_SERVICE) \
 		php maintenance/run.php install \
+			--confpath=/tmp \
 			--dbtype=mysql \
 			--dbserver=mariadb \
 			--dbname="$(MEDIAWIKI_DB_NAME)" \
@@ -483,10 +474,7 @@ mediawiki-install: ## 🧱 Install MediaWiki and initialise its database
 			--pass="$(MEDIAWIKI_ADMIN_PWD)" \
 			"$(OBSERVATORY_NAME)" \
 			"admin"
-
-	$(call success,MediaWiki installation complete)
-
-	@$(MAKE) --no-print-directory mediawiki-update
+	$(call success,MediaWiki database initialised)
 
 
 .PHONY: mediawiki-update

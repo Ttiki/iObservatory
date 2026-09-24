@@ -1,6 +1,7 @@
 # Git and VCS
 .git/
 .gitignore
+LocalSettings.php
 
 # PHP vendor (if you include composer installs locally)
 vendor/

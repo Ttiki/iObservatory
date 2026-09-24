@@ -12,6 +12,7 @@ certbot/
 /services/datawarehouse/backups/
 !init.sql
 *.sql
+!services/mariadb/_initdb.mariadb/*.sql
 *.sqlite*
 *.dump
 *.bak
