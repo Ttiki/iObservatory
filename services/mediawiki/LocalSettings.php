@@ -29,7 +29,9 @@ $wgResourceBasePath = $wgScriptPath;
 $wgUploadDirectory = "$IP/images";
 
 # Server settings
-$wgServer = "https://" . getenv('DOMAIN_NAME');
+$domainName = getenv('DOMAIN_NAME');
+$isLocalDevelopment = in_array($domainName, [ 'localhost', '127.0.0.1' ], true);
+$wgServer = ( $isLocalDevelopment ? 'http://' : 'https://' ) . $domainName;
 
 # Database settings
 $wgDBtype = "mysql";
@@ -60,7 +62,7 @@ $wgUpgradeKey = getenv('MEDIAWIKI_UPGRADE_KEY');
 
 # HTTPS settings
 $wgCanonicalServer = $wgServer;
-$wgForceHTTPS = true;
+$wgForceHTTPS = !$isLocalDevelopment;
 
 $wgPluggableAuth_EnableLocalLogin=true;
 #Keycloack exemple
@@ -296,7 +298,8 @@ wfLoadExtension( 'SemanticMediaWiki' );
 enableSemantics(getenv('DOMAIN_NAME'));
 wfLoadExtension( 'SemanticResultFormats' );
 wfLoadExtension( 'SemanticCompoundQueries' );
-wfLoadExtension( 'SemanticFormsSelect' );
+// SemanticFormsSelect 5.0 requires PageForms >= 6.0.6, while the mounted
+// PageForms checkout is still 5.7.2.
 
 $smwgNamespacesWithSemanticLinks[DATASRC] = true;
 

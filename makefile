@@ -202,6 +202,9 @@ install: ## 🚀 Install the platform for the first time
 	$(call info,Restoring normal MediaWiki configuration...)
 	@$(MAKE) --no-print-directory up
 
+	$(call info,Updating MediaWiki...)
+	@$(MAKE) --no-print-directory mediawiki-update
+
 	@printf "\n"
 	@printf "$(BOLD)$(GREEN)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(RESET)\n"
 	@printf "$(BOLD)$(GREEN)  🎉 Installation completed successfully!$(RESET)\n"
