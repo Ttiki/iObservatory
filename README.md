@@ -175,13 +175,19 @@ The exact URLs depend on the values configured in the root `.env` and Docker Com
 
 The default services include:
 
-| Service        |          Default port | Purpose                           |
-| -------------- | --------------------: | --------------------------------- |
-| MediaWiki      |                `8080` | Knowledge and ontology management |
-| Apache Hop Web |                `8081` | Data integration and ETL          |
-| MariaDB        |                `3306` | MediaWiki database                |
-| PostgreSQL     | Configured in Compose | Relational data                   |
-| MinIO          | Configured in Compose | Object storage                    |
+| Service        | Access path | Purpose                           |
+| -------------- | ----------- | --------------------------------- |
+| MediaWiki      | `/`         | Knowledge and ontology management |
+| Apache Hop     | `/hop/`     | Data integration and ETL          |
+| Cube           | `/cube/`    | Semantic data and SQL API         |
+| phpMyAdmin     | `/pma/`     | MariaDB administration             |
+| pgAdmin        | `/pga/`     | PostgreSQL administration          |
+| MariaDB        | Internal    | MediaWiki database                |
+| PostgreSQL     | Internal    | Relational data warehouse         |
+
+The HTTP services are exposed through the nginx reverse proxy at the configured
+`DOMAIN_NAME`. Cube also publishes its development interfaces on ports `4000`
+(Playground) and `15432` (SQL API) when those ports are available on the host.
 
 After installation, the generated:
 
@@ -286,6 +292,7 @@ make logs
 ```bash
 make update
 make backup-mariadb
+make backup-postgres
 make shell
 ```
 
@@ -332,6 +339,26 @@ make extensions
 make composer              # if required
 make mediawiki-update     # if required
 ```
+
+---
+
+## Working with data services
+
+Apache Hop projects are stored under:
+
+```text
+services/etl/hop-server/projects/
+services/etl/hop-web/projects/
+```
+
+Cube models are stored under:
+
+```text
+model/
+```
+
+PostgreSQL is configured as the `analytics_dw` database. Use pgAdmin at
+`/pga/` or the PostgreSQL client tools for administration.
 
 ---
 

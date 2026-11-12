@@ -1,31 +1,36 @@
 # Environment Configuration
 
-Each service has its own `.env` file under:
+Each service can have its own `.env` file under:
 
+```text
 services/<service>/.env
+```
 
+Do **not** commit actual `.env` files — use the `.env.example` templates
+provided.
 
-Do **not** commit actual `.env` files — use the `.env.example` templates provided.
+## Global `.env`
 
----
+| Variable | Description |
+|---|---|
+| `DOMAIN_NAME` | Base domain used by the reverse proxy |
+| `LETSENCRYPT_EMAIL` | Email used for Let's Encrypt certificates |
+| `OBSERVATORY_NAME` | Name shown in MediaWiki |
 
-## Global `.env` (used by all)
+## Service environments
 
-| Variable             | Description                     |
-|----------------------|---------------------------------|
-| `DOMAIN_NAME`        | Base domain (e.g. unitapedia.univ-unita.eu) |
-| `LETSENCRYPT_EMAIL`  | SSL registration email          |
-| `OBSERVATORY_NAME`   | Name shown in apps (e.g. wiki)  |
+* MediaWiki uses database and administrator credentials in
+  `services/mediawiki/.env`.
+* MariaDB uses `services/mariadb/.env`.
+* PostgreSQL uses `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` in
+  `services/postgres/.env`.
+* Apache Hop uses `services/etl/hop-server/.env` and
+  `services/etl/hop-web/.env`.
+* Cube uses `services/cube/.env`.
+* phpMyAdmin and pgAdmin use `services/pma/.env` and `services/pga/.env`.
 
----
+Run `make init-env` to create missing files from the tracked templates. Run
+`make credentials` to generate missing passwords and secrets. Existing `.env`
+files are not overwritten.
 
-## Examples
-
-- MediaWiki uses:
-  - `MEDIAWIKI_DB_NAME`, `MEDIAWIKI_ADMIN_USER`
-- Strapi uses:
-  - `DATABASE_HOST`, `APP_KEYS`, `JWT_SECRET`
-- PostgreSQL uses:
-  - `POSTGRES_DB`, `POSTGRES_USER`
-
-See `services/<service>/.env.example` for full reference.
+See `services/<service>/.env.example` for the full reference.

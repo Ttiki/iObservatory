@@ -53,62 +53,70 @@ The database is normally exposed only inside the Docker network.
 
 ## 🐘 PostgreSQL
 
-**Relational data storage**
+**Relational data warehouse**
 
-PostgreSQL provides a separate relational database that can be used by other Observatory components.
+PostgreSQL provides the `analytics_dw` database for Observatory data and
+analytics workloads. It is also used by Apache Hop and Cube.
 
-Keeping PostgreSQL separate from MediaWiki's MariaDB database allows the platform to maintain distinct data domains and services.
+Keeping PostgreSQL separate from MediaWiki's MariaDB database allows the
+platform to maintain distinct data domains and services.
 
 ---
 
-## 🏭 Apache Hop Web
+## 🏭 Apache Hop
 
 **Data integration and ETL**
 
-Apache Hop provides the data integration layer of the platform.
-
-It can be used to:
-
-* Import external datasets
-* Process CSV files
-* Clean and transform data
-* Connect to external databases and APIs
-* Normalise data
-* Prepare data for ingestion into other platform components
-* Automate repeatable data-processing workflows
+Apache Hop Server and Hop Web provide the data integration layer of the
+platform. They can import, clean, transform, normalise, and prepare external
+datasets for other platform components.
 
 ### Directory structure
 
 ```text
-services/hop-web/
-│
-├── projects/
-│   └── Source data and project files
-│
-└── pipelines/
-    ├── *.hpl
-    └── *.hwf
+services/etl/
+├── hop-server/
+│   ├── projects/
+│   └── tomcat/config/
+└── hop-web/
+    ├── projects/
+    └── tomcat/config/
 ```
 
-These directories are mounted into the Apache Hop container.
+These directories are mounted into the corresponding Apache Hop containers.
+Both services connect to PostgreSQL.
 
 ---
 
-## 🪣 MinIO
+## 📊 Cube
 
-**Object storage**
+**Semantic data and SQL API**
 
-MinIO provides S3-compatible object storage for files, datasets, artefacts, and other objects used by the platform.
+Cube provides a semantic layer over the PostgreSQL data warehouse. Cube models
+are loaded from:
 
-It can be used as a storage layer independently from the relational databases.
+```text
+model/
+```
+
+The Cube Playground is available on port `4000` and the SQL API on port `15432`
+when the ports are published by Docker. It is also configured for the `/cube/`
+reverse-proxy path.
 
 ---
 
-## 📝 Strapi
+## 🛠️ Administration tools
 
-**Content and API layer**
+### phpMyAdmin
 
-Strapi can be used when a traditional headless CMS or API-oriented content management layer is required.
+phpMyAdmin provides browser-based administration for the MediaWiki MariaDB
+database at the `/pma/` reverse-proxy path.
 
-Its inclusion in the stack is optional and can be adapted according to the requirements of a particular Observatory deployment.
+### pgAdmin
 
+pgAdmin provides browser-based administration for the PostgreSQL database at
+the `/pga/` reverse-proxy path. The default server connection is defined in:
+
+```text
+services/pga/servers.json
+```

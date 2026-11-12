@@ -41,6 +41,9 @@ For example:
 .env.example
 services/mediawiki/.env.example
 services/mariadb/.env.example
+services/postgres/.env.example
+services/cube/.env.example
+services/pga/.env.example
 ```
 
 becomes:
@@ -119,6 +122,10 @@ connection-info.txt
 file is generated containing the main access information.
 
 > 🔐 `connection-info.txt` contains credentials and must **not** be committed to version control.
+
+The generated connection information covers the browser-facing services and
+credentials needed to operate the deployment. Services are routed below the
+configured `DOMAIN_NAME`; see [SERVICE.md](SERVICE.md) for the current paths.
 
 ---
 

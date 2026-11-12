@@ -246,6 +246,10 @@ credentials: ## 🔐 Generate missing secure credentials
 	NEW_MARIADB_ROOT_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_POSTGRES_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_PGA_PWD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
+	NEW_CUBEJS_DB_PASS=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
+	NEW_CUBEJS_API_SECRET=$$(openssl rand -hex 32); \
+	NEW_CUBEJS_SQL_USER=cube; \
+	NEW_CUBEJS_SQL_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	\
 	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
 		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
@@ -318,6 +322,35 @@ credentials: ## 🔐 Generate missing secure credentials
 	else \
 		printf "     $(YELLOW)•$(RESET) pgAdmin password already exists\n"; \
 	fi;
+	if grep -q '^CUBEJS_DB_PASS=$$' services/cube/.env; then \
+		$(SED_INPLACE) "s/^CUBEJS_DB_PASS=.*/CUBEJS_DB_PASS=$$NEW_CUBEJS_DB_PASS/" \
+			services/cube/.env; \
+		printf "     $(GREEN)✔$(RESET) Cube.js database password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) Cube.js database password already exists\n"; \
+	fi; \
+	if grep -q '^CUBEJS_API_SECRET=$$' services/cube/.env; then \
+		$(SED_INPLACE) "s/^CUBEJS_API_SECRET=.*/CUBEJS_API_SECRET=$$NEW_CUBEJS_API_SECRET/" \
+			services/cube/.env; \
+		printf "     $(GREEN)✔$(RESET) Cube.js API secret generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) Cube.js API secret already exists\n"; \
+	fi; \
+	if grep -q '^CUBEJS_SQL_USER=$$' services/cube/.env; then \
+		$(SED_INPLACE) "s/^CUBEJS_SQL_USER=.*/CUBEJS_SQL_USER=$$NEW_CUBEJS_SQL_USER/" \
+			services/cube/.env; \
+		printf "     $(GREEN)✔$(RESET) Cube.js SQL user generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) Cube.js SQL user already exists\n"; \
+	fi; \
+	if grep -q '^CUBEJS_SQL_PASSWORD=$$' services/cube/.env;	 then \
+		$(SED_INPLACE) "s/^CUBEJS_SQL_PASSWORD=.*/CUBEJS_SQL_PASSWORD=$$NEW_CUBEJS_SQL_PASSWORD/" \
+			services/cube/.env; \
+		printf "     $(GREEN)✔$(RESET) Cube.js SQL password generated\n"; \
+	else \
+		printf "     $(YELLOW)•$(RESET) Cube.js SQL password already exists\n"; \
+	fi;
+	
 
 	$(call success,Credential check complete)
 
