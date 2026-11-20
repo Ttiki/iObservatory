@@ -47,6 +47,14 @@ services:
     env_file:
       - .env
       - ./services/postgres/.env
+      healthcheck:
+    test:
+      - CMD-SHELL
+      - 'pg_isready -U "$${POSTGRES_USER:-postgres}" -d analytics_dw'
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 20s
 
   # ───── BACKEND / SERVICES ─────
   mediawiki:
@@ -130,6 +138,8 @@ services:
   cube:
     image: cubejs/cube:v1.3
     container_name: semantic_cube
+    networks:
+      - observatory_net
     ports:
       - "4000:4000"    # Cube Playground
       - "15432:15432"  # Cube SQL API
@@ -148,6 +158,40 @@ services:
       postgres:
         condition: service_healthy
 
+  impact-studio:
+    build:
+      context: ./services/impact-studio
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - observatory_net
+    expose:
+      - "8080"
+    env_file:
+      - ./services/impact-studio/.env
+    environment:
+      SERVER_PORT: "8080"
+      SERVER_SERVLET_CONTEXT_PATH: /studio
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/analytics_dw
+
+      STUDIO_HOP_HOST: hop-server
+      STUDIO_HOP_PORT: "8080"
+      STUDIO_ARTIFACT_DIRECTORY: /var/lib/impact-studio
+
+      VIRTUAL_HOST: ${DOMAIN_NAME}
+      VIRTUAL_PATH: /studio/
+      VIRTUAL_DEST: /studio/
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${DOMAIN_NAME}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - studio-data:/var/lib/impact-studio
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hop-server:
+        condition: service_started
 
   # ───── ADMIN TOOLS ─────
   phpmyadmin:

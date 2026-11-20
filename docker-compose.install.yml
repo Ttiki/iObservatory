@@ -9,6 +9,7 @@ volumes:
   html:
   certs:
   acme:
+  studio-data:
 
 services:
 
@@ -45,6 +46,14 @@ services:
     env_file:
       - .env
       - ./services/postgres/.env
+    healthcheck:
+    test:
+      - CMD-SHELL
+      - 'pg_isready -U "$${POSTGRES_USER:-postgres}" -d analytics_dw'
+    interval: 10s
+    timeout: 5s
+    retries: 10
+    start_period: 20s
 
   # ───── BACKEND / SERVICES ─────
   mediawiki:
@@ -75,6 +84,27 @@ services:
     depends_on:
       - mariadb
       - postgres
+  
+  cube:
+    image: cubejs/cube:v1.3
+    container_name: semantic_cube
+    ports:
+      - "4000:4000"    # Cube Playground
+      - "15432:15432"  # Cube SQL API
+    environment:
+      CUBEJS_DB_TYPE: postgres
+      CUBEJS_DB_HOST: postgres
+      CUBEJS_DB_PORT: 5432
+      CUBEJS_DEV_MODE: true
+      VIRTUAL_HOST: ${DOMAIN_NAME}
+      VIRTUAL_PATH: /cube/
+      VIRTUAL_DEST: /
+      VIRTUAL_PORT: "8080"
+    volumes:
+      - ./model:/cube/conf/model
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   hop-server:
     image: apache/hop:latest
@@ -87,6 +117,7 @@ services:
     volumes:
       - ./services/etl/hop-server/projects:/project
       - ./services/etl/hop-server/tomcat/config:/config
+      - studio-data:/project/impact-studio:ro
     env_file:
       - .env
       - ./services/etl/hop-server/.env
@@ -111,6 +142,7 @@ services:
     volumes:
       - ./services/etl/hop-web/projects:/project
       - ./services/etl/hop-web/tomcat/config:/config
+      - studio-data:/project/impact-studio:ro
     env_file:
       - .env
       - ./services/etl/hop-web/.env
@@ -123,6 +155,47 @@ services:
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     depends_on:
       - postgres
+
+  impact-studio:
+    build:
+      context: ./services/impact-studio
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - observatory_net
+    expose:
+      - "8080"
+    env_file:
+      - ./services/impact-studio/.env
+    environment:
+      SERVER_PORT: "8080"
+      STUDIO_BASE_PATH: /studio
+      STUDIO_BIND_ADDRESS: 0.0.0.0
+
+      STUDIO_DB_URL: jdbc:postgresql://postgres:5432/analytics_dw
+      STUDIO_ARTIFACT_DIRECTORY: /var/lib/impact-studio
+      SERVER_SERVLET_CONTEXT_PATH: /studio
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/analytics_dw
+
+      STUDIO_HOP_HOST: hop-server
+      STUDIO_HOP_PORT: "8080"
+      STUDIO_DEPLOY_TOKEN: ${NEW_STUDIO_DEPLOY_TOKEN}
+      STUDIO_ARTIFACT_DIRECTORY: /var/lib/impact-studio
+
+      VIRTUAL_HOST: ${DOMAIN_NAME}
+      VIRTUAL_PATH: /studio/
+      VIRTUAL_DEST: /studio/
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${DOMAIN_NAME}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    volumes:
+      - studio-data:/var/lib/impact-studio
+    depends_on:
+      postgres:
+        condition: service_healthy
+      hop-server:
+        condition: service_started
 
   # ───── ADMIN TOOLS ─────
   phpmyadmin:
