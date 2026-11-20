@@ -11,26 +11,60 @@ document.getElementById("example").addEventListener('click', async (event) => {
     editor.value = (await fetch('example.xml')).text();
 });
 
-/** Submits the current XML for valudation or compilation and presents the report or bild download */
-async function build(action){
-    buttons.forEach((button) => button.disabled = true);
-    report.textContent = "Compiling...";
-    try{
-        const response = await fetch(`api/${action}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/xml' }, body: editor.value,
-        });
-        if(!response.ok || action === 'validate'){
-            report.textContent = JSON.stringify(await response.json(), null, 2);
-            return
-        }
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url; link.download = "impact-build.zip"; link.click();
-        setTimeout(()=>URL.revokeObjectURL(url), 1000);
-        report.textContent = 'Build downladed. Review diagnostics.json for missing bindings before cinfiguring HOP. No deployment was performed.';
-    }catch(error){report.textContent = error.message;}
-    finally {buttons.forEach(button => button.disabled = false);}
+/**
+ * Validates the model or deploys it to the configured database.
+ * Both operations display a JSON report instead of downloading files.
+ */
+async function build(action) {
+  const token = document.getElementById("deploy-token").value;
+
+  if (action === "compile" && !token) {
+    report.textContent = "Enter the deployment token.";
+    return;
+  }
+
+  buttons.forEach((button) => {
+    button.disabled = true;
+  });
+
+  report.textContent =
+    action === "compile"
+      ? "Compiling and deploying..."
+      : "Validating...";
+
+  try {
+    const headers = {
+      "Content-Type": "application/xml"
+    };
+
+    if (action === "compile") {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`api/${action}`, {
+      method: "POST",
+      headers,
+      body: editor.value
+    });
+
+    const text = await response.text();
+
+    try {
+      report.textContent = JSON.stringify(
+        JSON.parse(text),
+        null,
+        2
+      );
+    } catch {
+      throw new Error(`HTTP ${response.status}: ${text}`);
+    }
+  } catch (error) {
+    report.textContent = error.message;
+  } finally {
+    buttons.forEach((button) => {
+      button.disabled = false;
+    });
+  }
 }
 document.getElementById('validate').addEventListener('click', () => build('validate'));
 document.getElementById('compile').addEventListener('click', () => build('compile'));

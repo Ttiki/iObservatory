@@ -9,6 +9,8 @@ import java.util.concurrent.Executors;
 
 /** Stateless HTTP adapter. Bind to localhost by default; container config opts into all interfaces. */
 final class WebServer {
+
+    private static final DeploymentService deployment = new DeploymentService();
     /** Starts the HTTP service with the configured bind address, port, and application prefix. */
     static void start() throws IOException {
         int port = Integer.parseInt(System.getenv().getOrDefault("SERVER_PORT", "8080"));
@@ -40,11 +42,24 @@ final class WebServer {
             }
             if (Set.of("/api/validate", "/api/compile").contains(route)) {
                 if (!exchange.getRequestMethod().equals("POST")) { sendText(exchange, 405, "Use POST"); return; }
-                // No credential-bearing cross-origin access or mutations are exposed.
+                // Reject cross-origin request before processing XLK or  changing the database
                 String origin = exchange.getRequestHeaders().getFirst("Origin");
                 String host = exchange.getRequestHeaders().getFirst("Host");
                 if (origin != null && !Objects.equals(URI.create(origin).getAuthority(), host)) {
                     sendText(exchange, 403, "Cross-origin requests are disabled"); return;
+                }
+                // Database-changing requests require the configured deployment credential.
+                if (
+                        route.equals("/api/compile")
+                                && !deployment.authorized(
+                                exchange.getRequestHeaders().getFirst("Authorization")
+                        )
+                ) {
+                    sendJson(exchange, 401, Map.of(
+                            "error", "UNAUTHORIZED",
+                            "message", "A valid deployment token is required."
+                    ));
+                    return;
                 }
                 byte[] bytes = exchange.getRequestBody().readNBytes(2_000_001);
                 if (bytes.length > 2_000_000) { sendText(exchange, 413, "XML limit is 2 MB"); return; }
@@ -52,8 +67,21 @@ final class WebServer {
                 if (!build.valid() || route.equals("/api/validate")) {
                     sendJson(exchange, build.valid() ? 200 : 422, build.report()); return;
                 }
-                exchange.getResponseHeaders().set("Content-Disposition", "attachment; filename=impact-build.zip");
-                send(exchange, 200, "application/zip", build.zip()); return;
+                try {
+                    sendJson(exchange, 200, deployment.deploy(build));
+                } catch (Exception failure) {
+                    System.err.println(
+                            "Deployment failed: " + failure.getClass().getSimpleName()
+                    );
+
+                    sendJson(exchange, 503, Map.of(
+                            "error", "DEPLOYMENT_FAILED",
+                            "message",
+                            "Check database settings, schema permissions, "
+                                    + "JDBC driver, and shared-volume access."
+                    ));
+                }
+                return;
             }
             if (!exchange.getRequestMethod().equals("GET")) { sendText(exchange, 405, "Use GET"); return; }
             String file = route.equals("/") ? "index.html" : route.substring(1);
@@ -63,7 +91,7 @@ final class WebServer {
                 sendText(exchange, 404, "Not found"); return;
             }
             String resource = asset.endsWith(".js") ? "js/" + asset : asset;
-            try (var stream = WebServer.class.getResourceAsStream("/web/" + file)) {
+            try (var stream = WebServer.class.getResourceAsStream("/web/" + resource)) {
                 if (stream == null) { sendText(exchange, 404, "Not found"); return; }
                 String type = file.endsWith(".js") ? "text/javascript" : file.endsWith(".css") ? "text/css"
                         : file.endsWith(".xml") ? "application/xml" : "text/html";

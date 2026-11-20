@@ -251,7 +251,7 @@ credentials: ## 🔐 Generate missing secure credentials
 	NEW_CUBEJS_SQL_USER=cube; \
 	NEW_CUBEJS_SQL_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
 	NEW_STUDIO_DB_PASSWORD=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20); \
-	NEW_STUDIO_DEPLOY_TOKEN=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20);
+	NEW_STUDIO_DEPLOY_TOKEN=$$(openssl rand -base64 24 | tr -d '=+/' | cut -c1-20);\
 	\
 	if grep -q '^MEDIAWIKI_ADMIN_PWD=$$' services/mediawiki/.env; then \
 		$(SED_INPLACE) "s/^MEDIAWIKI_ADMIN_PWD=.*/MEDIAWIKI_ADMIN_PWD=$$NEW_ADMIN_PWD/" \
@@ -351,23 +351,21 @@ credentials: ## 🔐 Generate missing secure credentials
 		printf "     $(GREEN)✔$(RESET) Cube.js SQL password generated\n"; \
 	else \
 		printf "     $(YELLOW)•$(RESET) Cube.js SQL password already exists\n"; \
-	fi;
-	if grep -q '^STUDIO_DEPLOY_TOKEN=$$' services/impact-studio/.env;	 then \
+		fi; \
+	if grep -q '^STUDIO_DEPLOY_TOKEN=$$' services/impact-studio/.env; then \
 		$(SED_INPLACE) "s/^STUDIO_DEPLOY_TOKEN=.*/STUDIO_DEPLOY_TOKEN=$$NEW_STUDIO_DEPLOY_TOKEN/" \
 			services/impact-studio/.env; \
 		printf "     $(GREEN)✔$(RESET) Studio deployment token generated\n"; \
 	else \
 		printf "     $(YELLOW)•$(RESET) Studio deployment token already exists\n"; \
-	fi;
-	if grep -q '^STUDIO_DB_PASSWORD=$$' services/impact-studio/.env;	 then \
+	fi; \
+	if grep -q '^STUDIO_DB_PASSWORD=$$' services/impact-studio/.env; then \
 		$(SED_INPLACE) "s/^STUDIO_DB_PASSWORD=.*/STUDIO_DB_PASSWORD=$$NEW_STUDIO_DB_PASSWORD/" \
 			services/impact-studio/.env; \
-		printf "     $(GREEN)✔$(RESET) Studio database password generated\n"; \				
+		printf "     $(GREEN)✔$(RESET) Studio database password generated\n"; \
 	else \
 		printf "     $(YELLOW)•$(RESET) Studio database password already exists\n"; \
-	fi;
-	
-
+	fi
 	$(call success,Credential check complete)
 
 

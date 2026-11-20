@@ -46,14 +46,6 @@ services:
     env_file:
       - .env
       - ./services/postgres/.env
-    healthcheck:
-    test:
-      - CMD-SHELL
-      - 'pg_isready -U "$${POSTGRES_USER:-postgres}" -d analytics_dw'
-    interval: 10s
-    timeout: 5s
-    retries: 10
-    start_period: 20s
 
   # ───── BACKEND / SERVICES ─────
   mediawiki:
@@ -181,7 +173,6 @@ services:
       STUDIO_HOP_HOST: hop-server
       STUDIO_HOP_PORT: "8080"
       STUDIO_DEPLOY_TOKEN: ${NEW_STUDIO_DEPLOY_TOKEN}
-      STUDIO_ARTIFACT_DIRECTORY: /var/lib/impact-studio
 
       VIRTUAL_HOST: ${DOMAIN_NAME}
       VIRTUAL_PATH: /studio/

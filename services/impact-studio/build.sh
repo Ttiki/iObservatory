@@ -14,9 +14,16 @@ javac --release 21 -encoding UTF-8 \
 # Bundle the frontend alongside the compiled Java classes.
 cp -R src/main/resources/. build/classes/
 
+cat > build/MANIFEST.MF <<'EOF'
+Manifest-Version: 1.0
+Main-Class: com.clementcombier.studio.Main
+Class-Path: ../lib/postgresql-42.7.14.jar
+
+EOF
+
 jar --create \
   --file build/impact-studio.jar \
-  --main-class com.clementcombier.studio.Main \
+  --manifest build/MANIFEST.MF \
   -C build/classes .
 
 if [ "${1:-}" = "test" ]; then
