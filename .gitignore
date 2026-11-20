@@ -116,3 +116,4 @@ yarn-error.log
 connection-info.txt
 .editorconfig
 /services/minio/data
+/services/impact-studio
