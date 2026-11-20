@@ -21,7 +21,7 @@ $("#file").onchange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
     try {
-        if (files.size > 100000) throw new Error("Choose an XM file smaller than 10MB.");
+        if (file.size > 100000) throw new Error("Choose an XM file smaller than 10MB.");
         const xml = await file.text();
         new PathwayModel(xml);
         if (confirm("Replace the current canvas with " + file.name + "? You can undo this.")){
